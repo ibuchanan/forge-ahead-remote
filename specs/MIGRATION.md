@@ -3,8 +3,8 @@
 `@forge-ahead/remote` replaces the Remote Authentication helpers copied into
 `forge-ahead` (`src/forge/remote.ts`). This is a **breaking extraction**: the
 new package intentionally does not preserve the old positional call shapes.
-See [`docs/adr/0013-allow-breaking-remote-extraction.md`](docs/adr/0013-allow-breaking-remote-extraction.md)
-and [`docs/adr/0032-defer-forge-ahead-consumer-migration.md`](docs/adr/0032-defer-forge-ahead-consumer-migration.md)
+See [`docs/adr/0013-allow-breaking-remote-extraction.md`](../docs/adr/0013-allow-breaking-remote-extraction.md)
+and [`docs/adr/0032-defer-forge-ahead-consumer-migration.md`](../docs/adr/0032-defer-forge-ahead-consumer-migration.md)
 for why: this repository only has a vendored, read-only reference snapshot of
 one legacy consumer for API-shape evidence, not a live `forge-ahead` checkout
 it can safely edit. Removing the duplicate implementation and switching the
@@ -24,7 +24,7 @@ use.
 
 | `forge-ahead` (`src/forge/remote.ts`) | `@forge-ahead/remote` |
 | --- | --- |
-| `fetchAtlassianJwks()` — one-shot raw JWKS fetch | Removed. Use `createJwksKeyStore()`, which builds a reusable `jose` key store instead of a one-shot fetch (see [ADR 0022](docs/adr/0022-do-not-expose-public-jwks-fetch.md)). |
+| `fetchAtlassianJwks()` — one-shot raw JWKS fetch | Removed. Use `createJwksKeyStore()`, which builds a reusable `jose` key store instead of a one-shot fetch (see [ADR 0022](../docs/adr/0022-do-not-expose-public-jwks-fetch.md)). |
 | `createJwksKeyStore()` — `async`, no arguments, always the default Atlassian URL | `createJwksKeyStore(options?)` — synchronous, and accepts an optional `jwksUrl` to point at a non-default JWKS endpoint. |
 | `verifyJwt(token, audience, jwks?)` — positional | `verifyJwt({ token, audience, jwks?, jwksUrl?, issuer? })` — named options; `issuer` is enforced only when supplied. |
 | `verifyAndParseJwt(token, audience, jwks?)` — positional | `verifyAndParseJwt({ token, audience, jwks?, jwksUrl?, issuer? })` — named options. |

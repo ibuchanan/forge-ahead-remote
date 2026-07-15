@@ -37,8 +37,9 @@ npm run build
 - `tsdown.config.ts` builds each package entrypoint.
 - `CONTEXT.md` and `docs/adr/` carry the domain glossary and design
   decisions that test and API names should match.
-- `MIGRATION.md` maps the legacy `forge-ahead` Remote Authentication calls
-  onto this package's API.
+- `specs/` holds planning and reference material: the extraction design doc,
+  ticket definitions, and vendored reference implementations that informed
+  this package's API and tests. It is excluded from build, lint, and test.
 
 ## Contributing
 

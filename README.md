@@ -20,8 +20,7 @@ The `jwt`, `context`, and root verification APIs described in
 [`specs/remote-auth-tickets.md`](specs/remote-auth-tickets.md) are shipped and
 locked as the public API. See [`CONTEXT.md`](CONTEXT.md) for the domain
 glossary and [`docs/adr/`](docs/adr/) for the design decisions behind this
-package's shape. If you're migrating from the `forge-ahead` Remote
-Authentication helpers, see [`MIGRATION.md`](MIGRATION.md).
+package's shape.
 
 ## Usage
 
@@ -51,12 +50,16 @@ const context = result.value; // ForgeRemoteContext: verified FIT + forwarded to
 
 `@forge-ahead/remote/jwt` exposes pure JWT parsing and inspection
 (`parseJwt`, `getKeyIdFromToken`, `isJwtExpired`) with no `jose` or network
-dependency. `@forge-ahead/remote/context` exposes the pure
-`ForgeRemoteContext` builder (`buildForgeRemoteContext`) for modeling verified
-request context without verifying anything yourself. The root package adds
-the `jose`-backed verification shell (`createJwksKeyStore`, `verifyJwt`,
-`verifyAndParseJwt`, `validateAuthHeader`, `validateForgeRemoteRequest`,
-`toHttpAuthFailureResponse`) on top of both.
+dependency; malformed tokens throw `JwtParseError`.
+`@forge-ahead/remote/context` exposes the pure `ForgeRemoteContext` builder
+(`buildForgeRemoteContext`) for modeling verified request context without
+verifying anything yourself. The root package adds the `jose`-backed
+verification shell on top of both: `ATLASSIAN_FORGE_JWKS_URL` and
+`createJwksKeyStore` for JWKS resolution, `verifyJwt`/`verifyAndParseJwt` for
+low-level FIT verification, `validateAuthHeader` when you only need the
+verified payload (no forwarded tokens), `validateForgeRemoteRequest` for the
+full `ForgeRemoteContext` shown above, and `toHttpAuthFailureResponse` for
+mapping failures to an HTTP status and body.
 
 ## Development
 
