@@ -1,3 +1,4 @@
 {
-  "entry": ["test/**/*.test.ts"]
+  "entry": ["test/**/*.test.ts"],
+  "ignorePatterns": ["specs/**"]
 }
