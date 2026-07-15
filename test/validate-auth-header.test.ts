@@ -6,26 +6,40 @@ import {
   tamperSignature,
 } from "./jwt-test-helpers";
 
+function expectProblem(
+  result: Awaited<ReturnType<typeof validateAuthHeader>>,
+  expected: { status: number; detail: string },
+): void {
+  expect(result.isErr()).toBe(true);
+  expect(result._unsafeUnwrapErr()).toEqual(expect.objectContaining(expected));
+}
+
 describe("validateAuthHeader", () => {
   it("returns a 401 Problem Details result when the header is missing", async () => {
     const result = await validateAuthHeader({});
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Missing or malformed Authorization header",
+    });
   });
 
   it("returns a 401 Problem Details result when the header is not a Bearer token", async () => {
     const result = await validateAuthHeader({ authorization: "Basic abc123" });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Missing or malformed Authorization header",
+    });
   });
 
   it("returns a 401 Problem Details result when the Bearer token is empty", async () => {
     const result = await validateAuthHeader({ authorization: "Bearer " });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Missing or malformed Authorization header",
+    });
   });
 
   it("returns a 401 Problem Details result when the Bearer token is not a well-formed JWT", async () => {
@@ -33,8 +47,10 @@ describe("validateAuthHeader", () => {
       authorization: "Bearer not-a-jwt",
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token is not a well-formed JWT",
+    });
   });
 
   it("returns a 401 Problem Details result before verification when no audience can be determined", async () => {
@@ -45,8 +61,10 @@ describe("validateAuthHeader", () => {
       authorization: `Bearer ${token}`,
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Unable to determine the expected audience",
+    });
   });
 
   it("returns ok(payload) for a valid Forge Invocation Token with an injected key store", async () => {
@@ -81,8 +99,10 @@ describe("validateAuthHeader", () => {
       jwks: keyPair.jwks,
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token verification failed",
+    });
   });
 
   it("returns a 401 Problem Details result for a mismatched audience", async () => {
@@ -99,8 +119,10 @@ describe("validateAuthHeader", () => {
       jwks: keyPair.jwks,
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token verification failed",
+    });
   });
 
   it("returns a 401 Problem Details result for a mismatched issuer using the default", async () => {
@@ -117,8 +139,10 @@ describe("validateAuthHeader", () => {
       jwks: keyPair.jwks,
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token verification failed",
+    });
   });
 
   it("returns a 401 Problem Details result for a bad signature", async () => {
@@ -136,8 +160,10 @@ describe("validateAuthHeader", () => {
       jwks: keyPair.jwks,
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token verification failed",
+    });
   });
 
   it("returns a 502 Problem Details result when verification cannot complete", async () => {
@@ -157,8 +183,10 @@ describe("validateAuthHeader", () => {
       jwks: unreachableJwks,
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(502);
+    expectProblem(result, {
+      status: 502,
+      detail: "Forge Invocation Token verification could not complete",
+    });
   });
 
   it("derives the audience from the decoded FIT app.id when nothing else is supplied", async () => {

@@ -6,6 +6,14 @@ import {
 } from "../src/index";
 import { generateTestKeyPair, signTestJwt } from "./jwt-test-helpers";
 
+function expectProblem(
+  result: Awaited<ReturnType<typeof validateForgeRemoteRequest>>,
+  expected: { status: number; detail: string },
+): void {
+  expect(result.isErr()).toBe(true);
+  expect(result._unsafeUnwrapErr()).toEqual(expect.objectContaining(expected));
+}
+
 describe("toHttpAuthFailureResponse", () => {
   it("returns the problem's status and the problem itself as the body", () => {
     const problem = StandardError.getOrDefault(401)
@@ -74,8 +82,10 @@ describe("validateForgeRemoteRequest", () => {
       audience: "app-1",
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(401);
+    expectProblem(result, {
+      status: 401,
+      detail: "Missing or malformed Authorization header",
+    });
   });
 
   it("returns a 502 Problem Details result when verification cannot complete", async () => {
@@ -95,7 +105,9 @@ describe("validateForgeRemoteRequest", () => {
       jwks: unreachableJwks,
     });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().status).toBe(502);
+    expectProblem(result, {
+      status: 502,
+      detail: "Forge Invocation Token verification could not complete",
+    });
   });
 });

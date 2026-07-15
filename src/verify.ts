@@ -1,16 +1,17 @@
-import {
-  ok,
-  type ProblemDetails,
-  type Result,
-  StandardError,
-} from "@forge-ahead/errors";
+import { err, ok, type ProblemDetails, type Result } from "@forge-ahead/errors";
 import * as jose from "jose";
+import {
+  malformedForgeInvocationToken,
+  missingOrMalformedAuthorization,
+  verificationFailureFromError,
+} from "./auth-failure";
 import {
   buildForgeRemoteContext,
   type ForgeInvocationTokenPayload,
   type ForgeRemoteContext,
 } from "./context";
-import { JwtParseError, type JwtPayload, parseJwt } from "./jwt";
+import { selectExpectedForgeInvocationClaims } from "./expected-claims";
+import { type JwtPayload, parseJwt } from "./jwt";
 
 export const ATLASSIAN_FORGE_JWKS_URL =
   "https://forge.cdn.prod.atlassian-dev.net/.well-known/jwks.json";
@@ -56,8 +57,6 @@ export async function verifyAndParseJwt(
   return payload;
 }
 
-const DEFAULT_FORGE_ISSUER = "forge/invocation-token";
-
 export interface ValidateAuthHeaderOptions {
   jwks?: jose.JWTVerifyGetKey;
   jwksUrl?: string | URL;
@@ -73,48 +72,6 @@ export interface ValidateAuthHeaderOptions {
 
 export interface ValidateAuthHeaderInput extends ValidateAuthHeaderOptions {
   authorization?: string;
-}
-
-function resolveAppId(
-  payload: ForgeInvocationTokenPayload,
-): string | undefined {
-  const app = payload.app;
-  if (typeof app !== "object" || app === null) {
-    return undefined;
-  }
-  const id = (app as Record<string, unknown>).id;
-  return typeof id === "string" ? id : undefined;
-}
-
-function resolveAudience(
-  input: ValidateAuthHeaderInput,
-  unverifiedPayload: ForgeInvocationTokenPayload,
-): string | undefined {
-  if (input.audience !== undefined) {
-    return input.audience;
-  }
-  const derived = input.deriveAudience?.(unverifiedPayload);
-  if (derived !== undefined) {
-    return derived;
-  }
-  return resolveAppId(unverifiedPayload);
-}
-
-const AUTH_REJECTION_ERROR_TYPES: readonly (new (...args: never[]) => Error)[] =
-  [
-    jose.errors.JWTClaimValidationFailed,
-    jose.errors.JWSSignatureVerificationFailed,
-    jose.errors.JWTInvalid,
-    jose.errors.JWSInvalid,
-    jose.errors.JWKInvalid,
-    jose.errors.JWKSNoMatchingKey,
-    JwtParseError,
-  ];
-
-function isAuthRejection(error: unknown): boolean {
-  return AUTH_REJECTION_ERROR_TYPES.some(
-    (ErrorType) => error instanceof ErrorType,
-  );
 }
 
 function extractBearerToken(
@@ -139,27 +96,26 @@ async function verifyForgeInvocationTokenFromAuthorization(
 ): Promise<Result<VerifiedForgeInvocationToken, ProblemDetails>> {
   const token = extractBearerToken(authorization);
   if (token === undefined) {
-    return StandardError.getOrDefault(401).error(
-      "Missing or malformed Authorization header",
-    );
+    return missingOrMalformedAuthorization();
   }
 
   let unverifiedPayload: ForgeInvocationTokenPayload;
   try {
     unverifiedPayload = parseJwt(token).payload as ForgeInvocationTokenPayload;
   } catch {
-    return StandardError.getOrDefault(401).error(
-      "Forge Invocation Token is not a well-formed JWT",
-    );
+    return malformedForgeInvocationToken();
   }
 
-  const audience = resolveAudience(options, unverifiedPayload);
-  if (audience === undefined) {
-    return StandardError.getOrDefault(401).error(
-      "Unable to determine the expected audience",
-    );
+  const expectedClaims = selectExpectedForgeInvocationClaims({
+    audience: options.audience,
+    issuer: options.issuer,
+    deriveAudience: options.deriveAudience,
+    unverifiedPayload,
+  });
+  if (expectedClaims.isErr()) {
+    return err(expectedClaims.error);
   }
-  const issuer = options.issuer ?? DEFAULT_FORGE_ISSUER;
+  const { audience, issuer } = expectedClaims.value;
 
   try {
     const payload = await verifyAndParseJwt({
@@ -175,14 +131,7 @@ async function verifyForgeInvocationTokenFromAuthorization(
       issuer,
     });
   } catch (error) {
-    if (isAuthRejection(error)) {
-      return StandardError.getOrDefault(401).error(
-        "Forge Invocation Token verification failed",
-      );
-    }
-    return StandardError.getOrDefault(502).error(
-      "Forge Invocation Token verification could not complete",
-    );
+    return verificationFailureFromError(error);
   }
 }
 

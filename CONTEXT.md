@@ -18,6 +18,14 @@ verifying Forge Invocation Tokens, resolving Atlassian signing keys, and turning
 request-boundary authentication failures into structured results.
 _Avoid_: whole remote framework, generic JWT framework
 
+**Remote Authentication Failure**:
+A request-boundary failure to authenticate a Forge Remote request, covering
+missing or malformed authentication input, malformed Forge Invocation Tokens,
+tokens rejected by verification, missing verification parameters, and
+verification infrastructure failures before they are mapped into caller-facing
+Problem Details.
+_Avoid_: generic error, HTTP response, jose error
+
 **Forge Invocation Token**:
 The signed JWT attached by Forge to Forge Remote requests. The library verifies
 it as a token from Forge while treating its Forge-specific claim shape as
@@ -128,6 +136,12 @@ The named input object passed to FIT verification helpers. It carries the token,
 expected claims, and injected JWKS dependencies without relying on positional
 argument ordering.
 _Avoid_: positional verify arguments, overload ladder, hidden defaults
+
+**Expected Claims Selection**:
+The request-boundary process for choosing the expected Forge Invocation Token
+claims used for verification, including audience and issuer expectations, before
+the token is trusted.
+_Avoid_: token verification, claim validation, authorization policy
 
 **Forge Issuer Default**:
 The default `forge/invocation-token` issuer expected by Forge request-boundary
