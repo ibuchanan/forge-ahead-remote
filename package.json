@@ -12,6 +12,10 @@
     "./jwt": {
       "import": "./dist/jwt.mjs",
       "types": "./dist/jwt.d.mts"
+    },
+    "./context": {
+      "import": "./dist/context.mjs",
+      "types": "./dist/context.d.mts"
     }
   },
   "main": "dist/index.mjs",
