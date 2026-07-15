@@ -28,12 +28,17 @@ npm run build
 
 ## Project Layout
 
-- `src/index.ts` is the root package entrypoint; it will re-export the
-  `jwt`, `context`, and root verification APIs as they land.
-- `test/*.test.ts` covers the package as each capability is implemented.
+- `src/index.ts` is the root package entrypoint; it re-exports the pure
+  `jwt` and `context` APIs alongside the root-only verification helpers.
+  `src/jwt.ts` and `src/context.ts` back the `jwt` and `context` subpaths;
+  `src/verify.ts` owns the `jose`-backed verification shell.
+- `test/*.test.ts` covers each capability, including import-boundary and
+  package-boundary tests that lock the public API.
 - `tsdown.config.ts` builds each package entrypoint.
 - `CONTEXT.md` and `docs/adr/` carry the domain glossary and design
   decisions that test and API names should match.
+- `MIGRATION.md` maps the legacy `forge-ahead` Remote Authentication calls
+  onto this package's API.
 
 ## Contributing
 

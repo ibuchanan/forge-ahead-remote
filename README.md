@@ -16,11 +16,47 @@ The package is published as ESM and targets Node 22 or newer.
 
 ## Status
 
-This is the standalone package baseline. The `jwt`, `context`, and root
-verification APIs described in [`specs/remote-auth-tickets.md`](specs/remote-auth-tickets.md)
-are being built ticket by ticket. See [`CONTEXT.md`](CONTEXT.md) for the
-domain glossary and [`docs/adr/`](docs/adr/) for the design decisions behind
-this package's shape.
+The `jwt`, `context`, and root verification APIs described in
+[`specs/remote-auth-tickets.md`](specs/remote-auth-tickets.md) are shipped and
+locked as the public API. See [`CONTEXT.md`](CONTEXT.md) for the domain
+glossary and [`docs/adr/`](docs/adr/) for the design decisions behind this
+package's shape. If you're migrating from the `forge-ahead` Remote
+Authentication helpers, see [`MIGRATION.md`](MIGRATION.md).
+
+## Usage
+
+Authenticate a Forge Remote request into framework-neutral values:
+
+```ts
+import {
+  toHttpAuthFailureResponse,
+  validateForgeRemoteRequest,
+} from "@forge-ahead/remote";
+
+const result = await validateForgeRemoteRequest({
+  headers: {
+    authorization: request.headers.authorization,
+    appSystemToken: request.headers["x-forge-oauth-system"],
+    appUserToken: request.headers["x-forge-oauth-user"],
+  },
+});
+
+if (result.isErr()) {
+  const { status, body } = toHttpAuthFailureResponse(result.error);
+  return sendResponse(status, body); // framework-specific, not part of this package
+}
+
+const context = result.value; // ForgeRemoteContext: verified FIT + forwarded tokens
+```
+
+`@forge-ahead/remote/jwt` exposes pure JWT parsing and inspection
+(`parseJwt`, `getKeyIdFromToken`, `isJwtExpired`) with no `jose` or network
+dependency. `@forge-ahead/remote/context` exposes the pure
+`ForgeRemoteContext` builder (`buildForgeRemoteContext`) for modeling verified
+request context without verifying anything yourself. The root package adds
+the `jose`-backed verification shell (`createJwksKeyStore`, `verifyJwt`,
+`verifyAndParseJwt`, `validateAuthHeader`, `validateForgeRemoteRequest`,
+`toHttpAuthFailureResponse`) on top of both.
 
 ## Development
 
