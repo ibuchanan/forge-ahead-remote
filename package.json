@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
+  "sideEffects": false,
   "type": "module",
   "exports": {
     ".": {
@@ -16,7 +17,8 @@
     "./context": {
       "import": "./dist/context.mjs",
       "types": "./dist/context.d.mts"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
