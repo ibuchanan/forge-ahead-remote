@@ -5,7 +5,11 @@ import {
   StandardError,
 } from "@forge-ahead/errors";
 import * as jose from "jose";
-import type { ForgeInvocationTokenPayload } from "./context";
+import {
+  buildForgeRemoteContext,
+  type ForgeInvocationTokenPayload,
+  type ForgeRemoteContext,
+} from "./context";
 import { JwtParseError, type JwtPayload, parseJwt } from "./jwt";
 
 export const ATLASSIAN_FORGE_JWKS_URL =
@@ -123,10 +127,17 @@ function extractBearerToken(
   return match?.[1];
 }
 
-export async function validateAuthHeader(
-  input: ValidateAuthHeaderInput,
-): Promise<Result<ForgeInvocationTokenPayload, ProblemDetails>> {
-  const token = extractBearerToken(input.authorization);
+interface VerifiedForgeInvocationToken {
+  payload: ForgeInvocationTokenPayload;
+  audience: string;
+  issuer: string;
+}
+
+async function verifyForgeInvocationTokenFromAuthorization(
+  authorization: string | undefined,
+  options: ValidateAuthHeaderOptions,
+): Promise<Result<VerifiedForgeInvocationToken, ProblemDetails>> {
+  const token = extractBearerToken(authorization);
   if (token === undefined) {
     return StandardError.getOrDefault(401).error(
       "Missing or malformed Authorization header",
@@ -142,22 +153,27 @@ export async function validateAuthHeader(
     );
   }
 
-  const audience = resolveAudience(input, unverifiedPayload);
+  const audience = resolveAudience(options, unverifiedPayload);
   if (audience === undefined) {
     return StandardError.getOrDefault(401).error(
       "Unable to determine the expected audience",
     );
   }
+  const issuer = options.issuer ?? DEFAULT_FORGE_ISSUER;
 
   try {
     const payload = await verifyAndParseJwt({
       token,
       audience,
-      issuer: input.issuer ?? DEFAULT_FORGE_ISSUER,
-      jwks: input.jwks,
-      jwksUrl: input.jwksUrl,
+      issuer,
+      jwks: options.jwks,
+      jwksUrl: options.jwksUrl,
     });
-    return ok(payload as ForgeInvocationTokenPayload);
+    return ok({
+      payload: payload as ForgeInvocationTokenPayload,
+      audience,
+      issuer,
+    });
   } catch (error) {
     if (isAuthRejection(error)) {
       return StandardError.getOrDefault(401).error(
@@ -168,4 +184,53 @@ export async function validateAuthHeader(
       "Forge Invocation Token verification could not complete",
     );
   }
+}
+
+export async function validateAuthHeader(
+  input: ValidateAuthHeaderInput,
+): Promise<Result<ForgeInvocationTokenPayload, ProblemDetails>> {
+  const result = await verifyForgeInvocationTokenFromAuthorization(
+    input.authorization,
+    input,
+  );
+  return result.map((verified) => verified.payload);
+}
+
+export interface ForgeRemoteRequestHeaders {
+  authorization?: string;
+  appSystemToken?: string;
+  appUserToken?: string;
+}
+
+export interface ValidateForgeRemoteRequestInput
+  extends ValidateAuthHeaderOptions {
+  headers: ForgeRemoteRequestHeaders;
+}
+
+export async function validateForgeRemoteRequest(
+  input: ValidateForgeRemoteRequestInput,
+): Promise<Result<ForgeRemoteContext, ProblemDetails>> {
+  const result = await verifyForgeInvocationTokenFromAuthorization(
+    input.headers.authorization,
+    input,
+  );
+  return result.map((verified) =>
+    buildForgeRemoteContext({
+      fit: verified.payload,
+      verification: { audience: verified.audience, issuer: verified.issuer },
+      forwardedSystemToken: input.headers.appSystemToken,
+      forwardedUserToken: input.headers.appUserToken,
+    }),
+  );
+}
+
+export interface HttpAuthFailureResponse {
+  status: number;
+  body: ProblemDetails;
+}
+
+export function toHttpAuthFailureResponse(
+  problem: ProblemDetails,
+): HttpAuthFailureResponse {
+  return { status: problem.status, body: problem };
 }

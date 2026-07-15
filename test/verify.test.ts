@@ -197,7 +197,9 @@ describe("public API surface", () => {
       [
         "ATLASSIAN_FORGE_JWKS_URL",
         "createJwksKeyStore",
+        "toHttpAuthFailureResponse",
         "validateAuthHeader",
+        "validateForgeRemoteRequest",
         "verifyAndParseJwt",
         "verifyJwt",
       ].sort(),
