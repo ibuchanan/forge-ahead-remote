@@ -16,11 +16,10 @@ The package is published as ESM and targets Node 22 or newer.
 
 ## Status
 
-The `jwt`, `context`, and root verification APIs described in
-[`specs/remote-auth-tickets.md`](specs/remote-auth-tickets.md) are shipped and
-locked as the public API. See [`CONTEXT.md`](CONTEXT.md) for the domain
-glossary and [`docs/adr/`](docs/adr/) for the design decisions behind this
-package's shape.
+The `jwt`, `context`, and root verification APIs are shipped and locked as
+the public API. See [`CONTEXT.md`](CONTEXT.md) for the domain glossary and
+[`docs/adr/`](docs/adr/) for the design decisions behind this package's
+shape.
 
 ## Usage
 

@@ -2,7 +2,8 @@
 
 These tickets capture future Forge Remote Helper Library work identified by the
 auth extraction spec. They are intentionally deferred until the auth-first slice
-is complete. Numbering continues from `remote-auth-tickets.md`.
+is complete. Numbering continues from the completed auth-first ticket set
+(01-08).
 
 ## 09 - Add a Remote Logging Extension slice
 
