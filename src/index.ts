@@ -1,12 +1,20 @@
+export type {
+  BuildForgeRemoteContextInput,
+  ForgeInvocationTokenPayload,
+  ForgeRemoteContext,
+  ForgeRemoteContextForwardedTokens,
+  ForgeRemoteContextVerification,
+  ForwardedForgeToken,
+  ForwardedForgeTokenKind,
+} from "./context";
+export { buildForgeRemoteContext } from "./context";
+export type { JwtHeader, JwtPayload, JwtToken } from "./jwt";
 export {
-  ATLASSIAN_FORGE_JWKS_URL,
-  createJwksKeyStore,
-  toHttpAuthFailureResponse,
-  validateAuthHeader,
-  validateForgeRemoteRequest,
-  verifyAndParseJwt,
-  verifyJwt,
-} from "./verify";
+  getKeyIdFromToken,
+  isJwtExpired,
+  JwtParseError,
+  parseJwt,
+} from "./jwt";
 export type {
   CreateJwksKeyStoreOptions,
   ForgeRemoteRequestHeaders,
@@ -15,4 +23,13 @@ export type {
   ValidateAuthHeaderOptions,
   ValidateForgeRemoteRequestInput,
   VerifyJwtOptions,
+} from "./verify";
+export {
+  ATLASSIAN_FORGE_JWKS_URL,
+  createJwksKeyStore,
+  toHttpAuthFailureResponse,
+  validateAuthHeader,
+  validateForgeRemoteRequest,
+  verifyAndParseJwt,
+  verifyJwt,
 } from "./verify";

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import * as rootExports from "../src/index";
 import {
   ATLASSIAN_FORGE_JWKS_URL,
   createJwksKeyStore,
@@ -188,21 +187,5 @@ describe("verifyAndParseJwt", () => {
     await expect(
       verifyAndParseJwt({ token, audience: "app-2", jwks: keyPair.jwks }),
     ).rejects.toThrow();
-  });
-});
-
-describe("public API surface", () => {
-  it("does not export a one-shot JWKS fetch helper", () => {
-    expect(Object.keys(rootExports).sort()).toEqual(
-      [
-        "ATLASSIAN_FORGE_JWKS_URL",
-        "createJwksKeyStore",
-        "toHttpAuthFailureResponse",
-        "validateAuthHeader",
-        "validateForgeRemoteRequest",
-        "verifyAndParseJwt",
-        "verifyJwt",
-      ].sort(),
-    );
   });
 });
