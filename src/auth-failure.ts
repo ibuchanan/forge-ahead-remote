@@ -21,6 +21,11 @@ const AUTH_REJECTION_ERROR_TYPES: readonly (new (...args: never[]) => Error)[] =
     jose.errors.JWSInvalid,
     jose.errors.JWKInvalid,
     jose.errors.JWKSNoMatchingKey,
+    // An attacker-controlled token can present an unsupported or
+    // disallowed "alg" (e.g. the classic unsigned "alg: none" token);
+    // that is a property of the token, not an infrastructure failure.
+    jose.errors.JOSENotSupported,
+    jose.errors.JOSEAlgNotAllowed,
     JwtParseError,
   ];
 

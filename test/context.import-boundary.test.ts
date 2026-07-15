@@ -21,9 +21,12 @@ vi.mock("@forge/api", () => {
 vi.mock("@forge-ahead/logging", () => {
   throw new Error("the context subpath must not import a logging package");
 });
+vi.mock("../src/verify", () => {
+  throw new Error("the context subpath must not import from src/verify.ts");
+});
 
 describe("@forge-ahead/remote/context import boundary", () => {
-  it("loads without pulling in jose, errors, frameworks, Forge, or logging packages", async () => {
+  it("loads without pulling in jose, errors, frameworks, Forge, logging, or verify.ts", async () => {
     await expect(import("../src/context")).resolves.toBeTruthy();
   });
 });

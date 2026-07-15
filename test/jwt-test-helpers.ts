@@ -4,6 +4,7 @@ export interface TestKeyPair {
   kid: string;
   privateKey: jose.CryptoKey;
   jwks: jose.JWTVerifyGetKey;
+  publicJwk: jose.JWK;
 }
 
 export async function generateTestKeyPair(kid: string): Promise<TestKeyPair> {
@@ -15,6 +16,7 @@ export async function generateTestKeyPair(kid: string): Promise<TestKeyPair> {
     kid,
     privateKey,
     jwks: jose.createLocalJWKSet({ keys: [jwk] }),
+    publicJwk: jwk,
   };
 }
 
@@ -53,4 +55,17 @@ export function tamperSignature(token: string): string {
   const tamperedFirstChar = signature[0] === "A" ? "B" : "A";
   const tamperedSignature = `${tamperedFirstChar}${signature.slice(1)}`;
   return `${header}.${payload}.${tamperedSignature}`;
+}
+
+/**
+ * Builds a classic "alg: none" unsigned JWT: a well-formed three-part
+ * token with an empty signature segment, used to prove verification
+ * rejects it rather than accepting or misclassifying it.
+ */
+export function createUnsignedJwt(payload: jose.JWTPayload): string {
+  const header = Buffer.from(
+    JSON.stringify({ alg: "none", typ: "JWT" }),
+  ).toString("base64url");
+  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  return `${header}.${body}.`;
 }

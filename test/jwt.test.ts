@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { getKeyIdFromToken, isJwtExpired, parseJwt } from "../src/jwt";
 
+// @ts-expect-error - ForgeInvocationTokenPayload belongs to the context
+// subpath (ADR 0019), not jwt. If this stops erroring, jwt has started
+// exporting a Forge Remote domain type it should not own.
+// biome-ignore lint/correctness/noUnusedImports: type-only import exists to assert it is NOT exported from jwt.
+import type { ForgeInvocationTokenPayload } from "../src/jwt";
+
 // https://jwt.io well-known example token: header {"alg":"HS256","typ":"JWT"},
 // payload {"sub":"1234567890","name":"John Doe","iat":1516239022}.
 const KNOWN_JWT =

@@ -1,10 +1,14 @@
 import { StandardError } from "@forge-ahead/errors";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   toHttpAuthFailureResponse,
   validateForgeRemoteRequest,
 } from "../src/index";
 import { generateTestKeyPair, signTestJwt } from "./jwt-test-helpers";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 function expectProblem(
   result: Awaited<ReturnType<typeof validateForgeRemoteRequest>>,
@@ -74,6 +78,34 @@ describe("validateForgeRemoteRequest", () => {
       system: { kind: "system", token: "system-token-value" },
       user: { kind: "user", token: "user-token-value" },
     });
+  });
+
+  it("verifies using an injected static jwksUrl when no jwks store is supplied", async () => {
+    const keyPair = await generateTestKeyPair("test-kid");
+    const token = await signTestJwt(
+      keyPair,
+      { sub: "user-1" },
+      { audience: "app-1", issuer: "forge/invocation-token" },
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ keys: [keyPair.publicJwk] }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+      ),
+    );
+
+    const result = await validateForgeRemoteRequest({
+      headers: { authorization: `Bearer ${token}` },
+      audience: "app-1",
+      jwksUrl: "https://example.test/.well-known/jwks.json",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap().fit.sub).toBe("user-1");
   });
 
   it("returns a 401 Problem Details result through the same path as validateAuthHeader", async () => {

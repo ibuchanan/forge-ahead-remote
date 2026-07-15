@@ -1,10 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { validateAuthHeader } from "../src/index";
 import {
+  createUnsignedJwt,
   generateTestKeyPair,
   signTestJwt,
   tamperSignature,
 } from "./jwt-test-helpers";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 function expectProblem(
   result: Awaited<ReturnType<typeof validateAuthHeader>>,
@@ -85,6 +90,34 @@ describe("validateAuthHeader", () => {
     expect(result._unsafeUnwrap().sub).toBe("user-1");
   });
 
+  it("verifies using an injected static jwksUrl when no jwks store is supplied", async () => {
+    const keyPair = await generateTestKeyPair("test-kid");
+    const token = await signTestJwt(
+      keyPair,
+      { sub: "user-1" },
+      { audience: "app-1", issuer: "forge/invocation-token" },
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ keys: [keyPair.publicJwk] }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+      ),
+    );
+
+    const result = await validateAuthHeader({
+      authorization: `Bearer ${token}`,
+      audience: "app-1",
+      jwksUrl: "https://example.test/.well-known/jwks.json",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap().sub).toBe("user-1");
+  });
+
   it("returns a 401 Problem Details result for an expired token", async () => {
     const keyPair = await generateTestKeyPair("test-kid");
     const token = await signTestJwt(
@@ -156,6 +189,22 @@ describe("validateAuthHeader", () => {
 
     const result = await validateAuthHeader({
       authorization: `Bearer ${tamperedToken}`,
+      audience: "app-1",
+      jwks: keyPair.jwks,
+    });
+
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token verification failed",
+    });
+  });
+
+  it("returns a 401 Problem Details result for an unsigned token", async () => {
+    const keyPair = await generateTestKeyPair("test-kid");
+    const unsignedToken = createUnsignedJwt({ sub: "user-1", aud: "app-1" });
+
+    const result = await validateAuthHeader({
+      authorization: `Bearer ${unsignedToken}`,
       audience: "app-1",
       jwks: keyPair.jwks,
     });
