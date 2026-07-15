@@ -41,7 +41,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@forge-ahead/errors": "github:ibuchanan/forge-ahead-errors"
+    "@forge-ahead/errors": "github:ibuchanan/forge-ahead-errors",
+    "jose": "^6.2.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.3",
