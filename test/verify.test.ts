@@ -6,7 +6,11 @@ import {
   verifyAndParseJwt,
   verifyJwt,
 } from "../src/index";
-import { generateTestKeyPair, signTestJwt } from "./jwt-test-helpers";
+import {
+  generateTestKeyPair,
+  signTestJwt,
+  tamperSignature,
+} from "./jwt-test-helpers";
 
 describe("ATLASSIAN_FORGE_JWKS_URL", () => {
   it("is exposed from the root entrypoint", () => {
@@ -123,9 +127,7 @@ describe("verifyJwt", () => {
       { sub: "user-1" },
       { audience: "app-1" },
     );
-    const [header, payload, signature] = token.split(".");
-    const tamperedSignature = `${signature.slice(0, -1)}${signature.at(-1) === "A" ? "B" : "A"}`;
-    const tamperedToken = `${header}.${payload}.${tamperedSignature}`;
+    const tamperedToken = tamperSignature(token);
 
     await expect(
       verifyJwt({

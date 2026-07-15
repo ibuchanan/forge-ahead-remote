@@ -41,3 +41,16 @@ export async function signTestJwt(
   }
   return jwt.sign(keyPair.privateKey);
 }
+
+/**
+ * Flips the first character of the signature segment. The last base64url
+ * character of a signature can encode padding bits that decoding ignores,
+ * so tampering there sometimes leaves the decoded bytes unchanged; the
+ * first character never has that ambiguity.
+ */
+export function tamperSignature(token: string): string {
+  const [header, payload, signature] = token.split(".");
+  const tamperedFirstChar = signature[0] === "A" ? "B" : "A";
+  const tamperedSignature = `${tamperedFirstChar}${signature.slice(1)}`;
+  return `${header}.${payload}.${tamperedSignature}`;
+}

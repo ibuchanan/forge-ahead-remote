@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { validateAuthHeader } from "../src/index";
-import { generateTestKeyPair, signTestJwt } from "./jwt-test-helpers";
+import {
+  generateTestKeyPair,
+  signTestJwt,
+  tamperSignature,
+} from "./jwt-test-helpers";
 
 describe("validateAuthHeader", () => {
   it("returns a 401 Problem Details result when the header is missing", async () => {
@@ -124,9 +128,7 @@ describe("validateAuthHeader", () => {
       { sub: "user-1" },
       { audience: "app-1" },
     );
-    const [header, payload, signature] = token.split(".");
-    const tamperedSignature = `${signature.slice(0, -1)}${signature.at(-1) === "A" ? "B" : "A"}`;
-    const tamperedToken = `${header}.${payload}.${tamperedSignature}`;
+    const tamperedToken = tamperSignature(token);
 
     const result = await validateAuthHeader({
       authorization: `Bearer ${tamperedToken}`,
