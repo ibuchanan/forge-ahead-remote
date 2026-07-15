@@ -1,6 +1,6 @@
 # Development
 
-This covers the local development loop for `@forge-ahead/logging` itself.
+This covers the local development loop for `@forge-ahead/remote` itself.
 See [README.md](README.md) for package usage.
 
 ## Setup
@@ -28,11 +28,12 @@ npm run build
 
 ## Project Layout
 
-- `src/index.ts` contains the package implementation and public exports.
-- `test/*.test.ts` covers log level resolution, the core logger, default
-  redaction, bounded summaries, Object Summary Policies, Forge invocation
-  logging, and Result/Error logging.
-- `tsdown.config.ts` builds `src/index.ts` as the package entrypoint.
+- `src/index.ts` is the root package entrypoint; it will re-export the
+  `jwt`, `context`, and root verification APIs as they land.
+- `test/*.test.ts` covers the package as each capability is implemented.
+- `tsdown.config.ts` builds each package entrypoint.
+- `CONTEXT.md` and `docs/adr/` carry the domain glossary and design
+  decisions that test and API names should match.
 
 ## Contributing
 

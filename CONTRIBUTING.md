@@ -1,6 +1,6 @@
-# Contributing to @forge-ahead/logging
+# Contributing to @forge-ahead/remote
 
-Thank you for considering a contribution to @forge-ahead/logging! Pull requests, issues and comments are welcome. For pull requests, please:
+Thank you for considering a contribution to @forge-ahead/remote! Pull requests, issues and comments are welcome. For pull requests, please:
 
 * Add tests for new features and bug fixes
 * Follow the existing style

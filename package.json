@@ -1,6 +1,6 @@
 {
-  "name": "@forge-ahead/logging",
-  "version": "0.2.0",
+  "name": "@forge-ahead/remote",
+  "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -9,9 +9,9 @@
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.mts"
     },
-    "./demo": {
-      "import": "./dist/demo.mjs",
-      "types": "./dist/demo.d.mts"
+    "./jwt": {
+      "import": "./dist/jwt.mjs",
+      "types": "./dist/jwt.d.mts"
     }
   },
   "main": "dist/index.mjs",
