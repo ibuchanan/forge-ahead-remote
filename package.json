@@ -18,6 +18,10 @@
       "import": "./dist/context.mjs",
       "types": "./dist/context.d.mts"
     },
+    "./invocation": {
+      "import": "./dist/invocation.mjs",
+      "types": "./dist/invocation.d.mts"
+    },
     "./package.json": "./package.json"
   },
   "main": "dist/index.mjs",
