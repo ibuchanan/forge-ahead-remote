@@ -36,17 +36,21 @@ export type MappedEvent =
       lastChunk?: boolean;
     };
 
+function workingTaskStateUpdate(message?: string): MappedEvent {
+  return message === undefined
+    ? { kind: "task-state-update", state: "working", final: false }
+    : {
+        kind: "task-state-update",
+        state: "working",
+        final: false,
+        message,
+      };
+}
+
 export function mapRemoteAgentSignal(signal: RemoteAgentSignal): MappedEvent {
   switch (signal.category) {
     case "runtime-started":
-      return signal.summary === undefined
-        ? { kind: "task-state-update", state: "working", final: false }
-        : {
-            kind: "task-state-update",
-            state: "working",
-            final: false,
-            message: signal.summary,
-          };
+      return workingTaskStateUpdate(signal.summary);
     case "completed":
       return {
         kind: "task-state-update",
@@ -90,14 +94,7 @@ export function mapRemoteAgentSignal(signal: RemoteAgentSignal): MappedEvent {
         message: signal.detail,
       };
     case "resumed":
-      return signal.summary === undefined
-        ? { kind: "task-state-update", state: "working", final: false }
-        : {
-            kind: "task-state-update",
-            state: "working",
-            final: false,
-            message: signal.summary,
-          };
+      return workingTaskStateUpdate(signal.summary);
     case "thinking-process":
       return { kind: "content-update", message: signal.summary };
     case "internal-thinking":
