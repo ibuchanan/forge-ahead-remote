@@ -217,6 +217,19 @@ A future Remote Extension Package that integrates Forge Remote Context with
 examples. It is not part of the auth-first core.
 _Avoid_: core summary helper, built-in logger, raw context logging
 
+**Safe Remote Context Summary**:
+A whitelist-based log value derived from Forge Remote Context that exposes only
+known-safe verification, principal subject, and forwarded-token presence facts.
+It does not recursively log arbitrary Forge Invocation Token claims or profile
+data.
+_Avoid_: redacted context, raw FIT log, claim dump
+
+**Remote Logging Demonstration**:
+A reference implementation use of app-local logs to make Remote Authentication,
+Remote Invocation Contract Validation, and A2A-visible behavior understandable
+without making those logs required production behavior.
+_Avoid_: hidden event channel, production logging policy, core behavior
+
 **Standalone Package Repository**:
 A repository whose root package is the published helper package. Integration with
 `forge-ahead` happens by migrating known consumers directly or adding a deliberate

@@ -155,8 +155,9 @@ open question:
 - `truncateEvents(obj)` walks any `JSONValue` recursively, replaces `headers`
   entirely with a redaction marker, and truncates `contextToken` to
   `first3...last3` characters while preserving the rest of the object shape
-  - a concrete, generic (not FIT-specific) redaction strategy that could be
-    pointed at a `ForgeRemoteContext` or an unverified FIT payload.
+  - a concrete, generic (not FIT-specific) redaction strategy that is useful for
+    app-local demonstration payloads but should not be treated as the primary
+    safety boundary for `ForgeRemoteContext`.
 - `logResult<T>(result, label?)` logs success at `info` and the full
   `ProblemDetails` at `error` via `.match()`.
 - `logContext(context, label?)` truncates then logs a context object.
@@ -170,6 +171,16 @@ context. This is the first middleware in the chain, ahead of auth.
 **Relationship to existing tickets:** refines ticket 09 with concrete
 technique (generic-value truncation + trace-context propagation) rather
 than changing its scope.
+
+The Ticket 09 design is now narrowed further in
+[`remote-logging-extension-design.md`](./remote-logging-extension-design.md):
+Forge Remote Context logging should use a whitelist-based Safe Remote Context
+Summary, not a recursive context dump. The demonstration logs should use
+structured event names for Remote Authentication, Remote Invocation Contract
+Validation, and A2A signal/stream behavior. The
+[`LOGGING.md`](./LOGGING.md) handoff describes how the
+`explore-jira-agent-assignment` app should prove that design without making
+logging required production behavior.
 
 ### 4. Product API access with forwarded tokens (refines ticket 11)
 

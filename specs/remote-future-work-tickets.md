@@ -13,8 +13,10 @@ Reviewed against `remote-invocation-a2a-tickets.md` (tickets 17-24, done):
 - **14 is broadened** per `remote-capability-roadmap.md` theme 6, from
   "JWKS policy" to "regional/isolated-cloud endpoint resolution" - see its
   entry below.
-- **09, 11, 12, 13, 16 are untouched and still open**; none of their
-  acceptance criteria overlap with what 17-24 shipped.
+- **09 now has design and example-app handoff docs** in
+  `remote-logging-extension-design.md` and `LOGGING.md`, but remains open for
+  runtime implementation. **11, 12, 13, 16 are untouched and still open**; none
+  of their acceptance criteria overlap with what 17-24 shipped.
 - **10** (framework middleware) is still open and unaffected in scope, but
   now that `/invocation` exists, consider having its example route also
   demonstrate composing Remote Invocation Contract Validation as the
@@ -28,6 +30,12 @@ Reviewed against `remote-invocation-a2a-tickets.md` (tickets 17-24, done):
 **Blocked by:** 08 - Prove the extraction against known consumers and docs.
 
 **Status:** deferred; ready-for-agent once blockers are complete.
+
+**Design notes:** See
+[`remote-logging-extension-design.md`](./remote-logging-extension-design.md) for
+the proposed extension boundary, safe summary shape, and structured event
+catalog. See [`LOGGING.md`](./LOGGING.md) for the `explore-jira-agent-assignment`
+handoff.
 
 - [ ] Package ownership, export shape, and concrete API are decided at the start of this slice.
 - [ ] The extension depends on the auth core context shape rather than re-parsing raw request headers.
