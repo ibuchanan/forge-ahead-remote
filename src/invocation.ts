@@ -18,16 +18,27 @@ export interface RemoteInvocationContractForwardedTokenRequirements {
   user?: boolean;
 }
 
+export interface RemoteInvocationContractAcknowledgement {
+  status: number;
+  description: string;
+}
+
 export interface DefineRemoteInvocationContractInput {
   name: string;
   authentication: RemoteInvocationAuthentication;
   requiredForwardedTokens?: RemoteInvocationContractForwardedTokenRequirements;
+  acknowledgement?: RemoteInvocationContractAcknowledgement;
+  installationIdRequired?: boolean;
+  systemTokenRehydration?: "possible";
 }
 
 export interface RemoteInvocationContract {
   name: string;
   authentication: RemoteInvocationAuthentication;
   requiredForwardedTokens: RemoteInvocationContractForwardedTokenRequirements;
+  acknowledgement?: RemoteInvocationContractAcknowledgement;
+  installationIdRequired?: boolean;
+  systemTokenRehydration?: "possible";
 }
 
 export function defineRemoteInvocationContract(
@@ -37,6 +48,9 @@ export function defineRemoteInvocationContract(
     name: input.name,
     authentication: input.authentication,
     requiredForwardedTokens: input.requiredForwardedTokens ?? {},
+    acknowledgement: input.acknowledgement,
+    installationIdRequired: input.installationIdRequired,
+    systemTokenRehydration: input.systemTokenRehydration,
   };
 }
 
@@ -78,3 +92,43 @@ export function validateRemoteInvocationContract(
     forwardedTokens: context.forwardedTokens ?? {},
   });
 }
+
+export const customUiInvocation: RemoteInvocationContract =
+  defineRemoteInvocationContract({
+    name: "custom-ui-invocation",
+    authentication: "forge-invocation-token",
+    requiredForwardedTokens: { system: true, user: true },
+  });
+
+export const backendFunctionInvocation: RemoteInvocationContract =
+  defineRemoteInvocationContract({
+    name: "backend-function-invocation",
+    authentication: "forge-invocation-token",
+    requiredForwardedTokens: { system: true },
+  });
+
+export const asyncEventInvocation: RemoteInvocationContract =
+  defineRemoteInvocationContract({
+    name: "async-event-invocation",
+    authentication: "forge-invocation-token",
+    requiredForwardedTokens: { system: true },
+    acknowledgement: {
+      status: 202,
+      description: "Accepted for asynchronous processing",
+    },
+  });
+
+export const scheduledTriggerInvocation: RemoteInvocationContract =
+  defineRemoteInvocationContract({
+    name: "scheduled-trigger-invocation",
+    authentication: "forge-invocation-token",
+    requiredForwardedTokens: { system: true },
+  });
+
+export const externalRemoteInvocation: RemoteInvocationContract =
+  defineRemoteInvocationContract({
+    name: "external-remote-invocation",
+    authentication: "caller-owned",
+    installationIdRequired: true,
+    systemTokenRehydration: "possible",
+  });

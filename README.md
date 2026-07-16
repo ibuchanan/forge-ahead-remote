@@ -60,6 +60,45 @@ verified payload (no forwarded tokens), `validateForgeRemoteRequest` for the
 full `ForgeRemoteContext` shown above, and `toHttpAuthFailureResponse` for
 mapping failures to an HTTP status and body.
 
+`@forge-ahead/remote/invocation` exposes Remote Invocation Contracts: a
+`defineRemoteInvocationContract(...)` builder, named presets for the
+evidenced Forge Remote request categories (`customUiInvocation`,
+`backendFunctionInvocation`, `asyncEventInvocation`,
+`scheduledTriggerInvocation`, `externalRemoteInvocation`), and
+`validateRemoteInvocationContract(context, contract)` for checking a
+`ForgeRemoteContext`'s forwarded-token guarantees as a second, explicit step
+after request authentication:
+
+```ts
+import {
+  customUiInvocation,
+  validateRemoteInvocationContract,
+} from "@forge-ahead/remote/invocation";
+
+const authResult = await validateForgeRemoteRequest({ headers });
+if (authResult.isErr()) {
+  const { status, body } = toHttpAuthFailureResponse(authResult.error);
+  return sendResponse(status, body);
+}
+
+const contractResult = validateRemoteInvocationContract(
+  authResult.value,
+  customUiInvocation,
+);
+if (contractResult.isErr()) {
+  return sendResponse(contractResult.error.status, contractResult.error);
+}
+
+const { forwardedTokens } = contractResult.value; // required tokens are guaranteed present
+// ...route-specific handling
+```
+
+Contract validation only checks incoming authentication and forwarded-token
+guarantees; a preset's `acknowledgement` metadata (such as the `202` async
+event invocations expect) and the `externalRemoteInvocation` preset's
+`installationIdRequired`/`systemTokenRehydration` metadata describe expected
+route behavior but are never built or enforced by this package.
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, package scripts, and
