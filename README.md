@@ -143,6 +143,16 @@ const streamResponse = {
 };
 ```
 
+`createA2aResponseEnvelope(id, result)` and `createA2aErrorEnvelope(id, code, message, data?)`
+build JSON-RPC 2.0 envelopes scoped to A2A response payloads — not a
+general-purpose JSON-RPC utility surface — and `isJsonRpcResponse(value)` is
+a malformed-envelope check (valid `jsonrpc`/`id`, exactly one of
+`result`/`error`). `encodeA2aStreamEnvelope(response)` is a pure encoder
+that produces the `data: ...\n\n` chunk value a transport layer can write;
+it does not set headers, flush, write to a response, close a connection, or
+expose an SSE writer abstraction — that stays in caller-owned transport
+code.
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, package scripts, and
