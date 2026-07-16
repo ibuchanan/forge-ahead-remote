@@ -5,6 +5,22 @@ auth extraction spec. They are intentionally deferred until the auth-first slice
 is complete. Numbering continues from the completed auth-first ticket set
 (01-08).
 
+## Status
+
+Reviewed against `remote-invocation-a2a-tickets.md` (tickets 17-24, done):
+
+- **15 is superseded** by tickets 19-24 - see its entry below.
+- **14 is broadened** per `remote-capability-roadmap.md` theme 6, from
+  "JWKS policy" to "regional/isolated-cloud endpoint resolution" - see its
+  entry below.
+- **09, 11, 12, 13, 16 are untouched and still open**; none of their
+  acceptance criteria overlap with what 17-24 shipped.
+- **10** (framework middleware) is still open and unaffected in scope, but
+  now that `/invocation` exists, consider having its example route also
+  demonstrate composing Remote Invocation Contract Validation as the
+  documented second explicit step after authentication - not a blocker,
+  just worth deciding when 10 is picked up.
+
 ## 09 - Add a Remote Logging Extension slice
 
 **What to build:** A deferred logging extension that demonstrates safe Forge Remote Context summaries and demo-oriented request logging without making the auth core depend on logging.
@@ -75,17 +91,37 @@ is complete. Numbering continues from the completed auth-first ticket set
 - [ ] Tests cover successful lookup, missing context data, authorization failure, and infrastructure failure.
 - [ ] Documentation explains when these helpers should be used instead of direct Forge runtime storage.
 
-## 14 - Add regional and isolated-cloud JWKS policy
+## 14 - Add regional and isolated-cloud endpoint resolution
 
-**What to build:** A policy layer that can choose JWKS sources and app validation rules for regional or isolated-cloud deployments without hardcoding that policy into the auth core.
+**Broadened from "JWKS policy":** `remote-capability-roadmap.md` theme 6
+shows the same per-app regional/isolated-cloud URL-templating problem
+recurring for both JWKS sources and Forge Storage base URLs (see
+`forge-remote-nodejs/src/util/urls.js`'s `getJwksUrlForAppId` and
+`getForgeStorageBaseUrlForAppId`), each substituting a validated `icLabel`
+into a template with an anti-spoofing regex check
+(`^[a-z0-9_-]{1,50}$`) before use. This ticket is broadened so the first
+slice's endpoint-resolution mechanism is reusable by later outbound helpers
+(ticket 13's Forge storage access, theme 4's product API access) instead
+of each one reinventing template-plus-label validation. The Forge
+platform-level regional `baseUrl`/`inScopeEUD` manifest mechanism stays
+explicitly out of scope - that's app-manifest configuration, not something
+this library resolves.
+
+**What to build:** A policy layer that resolves per-app regional or
+isolated-cloud endpoints - starting with JWKS sources, but factored
+generically enough that a later non-JWKS base URL can reuse the same
+template-substitution and label-validation mechanism - without hardcoding
+that policy into the auth core.
 
 **Blocked by:** 08 - Prove the extraction against known consumers and docs.
 
 **Status:** deferred; ready-for-agent once blockers are complete.
 
-- [ ] Callers can configure app allowlists, isolated-cloud labels, or app-to-JWKS routing policy.
+- [ ] Callers can configure app allowlists, isolated-cloud labels, or app-to-endpoint routing policy.
 - [ ] The policy produces the same core verification inputs already supported by Remote Authentication.
 - [ ] Invalid app or region policy decisions are distinguishable from token signature failures.
+- [ ] Isolated-cloud labels are validated against an anti-spoofing pattern before being substituted into any URL template.
+- [ ] The template-substitution and label-validation mechanism is factored so a future non-JWKS base URL (e.g. a Forge Storage base URL) can reuse it without reimplementing validation.
 - [ ] Tests cover default Atlassian JWKS, injected JWKS URL, and policy-selected JWKS behavior.
 - [ ] The auth core remains policy-injectable rather than owning deployment-specific routing templates.
 
@@ -95,13 +131,26 @@ is complete. Numbering continues from the completed auth-first ticket set
 
 **Blocked by:** 08 - Prove the extraction against known consumers and docs.
 
-**Status:** deferred; ready-for-agent once blockers are complete.
+**Status:** superseded. `remote-capability-roadmap.md` theme 2 refined this
+ticket into layered sub-slices, shipped as tickets 19-24 in
+`remote-invocation-a2a-tickets.md`: the A2A Contract Layer and task-state
+machine (19), zod-backed A2A Contract Validation (20), Remote Agent Signal
+Mapping (21), A2A JSON-RPC envelope helpers (22), the Rovo Subpath and
+method narrowing (23), and Rovo Agent Connector Formatting (24).
 
-- [ ] The first protocol helper scope is selected from JSON-RPC envelopes, SSE streaming, task state mapping, or Rovo remote-agent conventions.
-- [ ] Protocol helpers accept an already authenticated `ForgeRemoteContext`.
-- [ ] Protocol parsing and task state are tested without requiring framework request objects.
-- [ ] Authentication failures remain owned by the auth core, not the protocol helper.
-- [ ] Reference implementation usage is documented without treating the reference app as a direct source template.
+One criterion below shipped differently than written, by deliberate
+design: per ADR 0045, A2A and Rovo helpers require **no**
+`ForgeRemoteContext` at all, rather than accepting one. Route code composes
+request authentication, Remote Invocation Contract Validation, and
+protocol handling as three separate explicit steps, which keeps the
+protocol helpers usable independent of Forge Remote authentication
+entirely. This is a refinement of the original intent, not a gap.
+
+- [x] The first protocol helper scope is selected from JSON-RPC envelopes, SSE streaming, task state mapping, or Rovo remote-agent conventions. (Task state mapping, JSON-RPC envelopes, and Rovo remote-agent conventions were selected; SSE streaming was deliberately deferred - see ADR 0044.)
+- [~] Protocol helpers accept an already authenticated `ForgeRemoteContext`. (Shipped differently: they accept no `ForgeRemoteContext` at all - see the note above.)
+- [x] Protocol parsing and task state are tested without requiring framework request objects.
+- [x] Authentication failures remain owned by the auth core, not the protocol helper.
+- [x] Reference implementation usage is documented without treating the reference app as a direct source template.
 
 ## 16 - Add Forge Remote backend template support
 
