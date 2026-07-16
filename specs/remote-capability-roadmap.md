@@ -38,7 +38,7 @@ Each theme below cites the specific files evidence came from.
 
 ## Major capability themes
 
-### 1. Invocation-shape / trigger-type helpers (new)
+### 1. Remote Invocation Contract helpers (new)
 
 **What it is:** `validateForgeRemoteRequest()` currently assumes one shape: a
 synchronous request carrying a verifiable `Authorization` header. The
@@ -55,9 +55,32 @@ invocation shapes, each with a different auth/response contract:
 
 The auth-first package has no vocabulary for "this request has no FIT and
 authenticates a different way" or "this trigger type never carries a user
-token." A future helper could model invocation shape as a first-class,
-narrow addition: a way to declare which forwarded tokens a shape guarantees,
-without changing how FIT verification itself works.
+token." A future `/invocation` subpath should model this as a first-class
+Remote Invocation Contract: a static description plus pure incoming validation
+of the authenticated context's contract guarantees.
+
+The first slice should provide named presets for the evidenced shapes
+(`customUiInvocation`, `backendFunctionInvocation`, `asyncEventInvocation`,
+`scheduledTriggerInvocation`, and `externalRemoteInvocation`) plus a
+low-level `defineRemoteInvocationContract(...)` builder for new Forge variants.
+Successful validation should return a narrowed Remote Invocation Contract Match,
+so route code can rely on typed guarantees such as a required system forwarded
+token being present. Failed validation should return the package's existing
+`Result<..., ProblemDetails>` shape with a contract-mismatch problem distinct
+from FIT verification failure.
+
+This validation is deliberately separate from `validateForgeRemoteRequest()`.
+The request validator authenticates the request and builds `ForgeRemoteContext`;
+contract validation is a second explicit route-level step. It also validates
+incoming authentication and forwarded-token requirements only. Expected
+acknowledgement and response shapes, such as async `202`, are contract
+description for docs and adapters, not something the pure core enforces.
+
+`externalRemoteInvocation` belongs in the first taxonomy even though it has no
+Forge Invocation Token and no `ForgeRemoteContext` to validate. Its contract can
+record that FIT is absent, authentication is caller-owned, `installationId` is
+required, and system-token rehydration may happen later; Basic auth,
+shared-secret handling, storage, and token rehydration stay out of this slice.
 
 **Relationship to existing tickets:** not covered by 09-16. Closest is
 ticket 10 (framework middleware), but that ticket is about adapting one
@@ -65,44 +88,57 @@ HTTP framework, not about the different trigger/response contracts Forge
 Remote itself defines. Recommend a new ticket area rather than folding this
 into 10.
 
-### 2. Remote-agent / A2A protocol layering (refines ticket 15)
+### 2. A2A and Rovo remote-agent protocol layering (refines ticket 15)
 
 **What it is:** ticket 15 currently reads as one undifferentiated slice.
-The reference package shows this decomposes cleanly into four layers, each
-independently testable and increasingly protocol-specific:
+The reference package shows this decomposes cleanly into protocol layers, each
+independently testable and increasingly product-specific:
 
-1. Generic JSON-RPC 2.0 envelope helpers - `util/jsonrpc.ts`: request/response
-   types, `isJsonRpcError`, `validateJsonRpcRequest`, response builders. Fully
-   generic, not Rovo-specific.
-2. A2A protocol contract and task-state machine - `rovo/a2aContract.ts`:
+1. A2A protocol contract and task-state machine - `rovo/a2aContract.ts`:
    `Task`/`Message`/`Artifact` types plus `TASK_STATE_TRANSITIONS`, a real
    adjacency map enforcing legal lifecycle transitions
    (`working` -> `input-required|auth-required|completed|failed|canceled`,
    `completed` -> nothing). Explicitly sans-IO: "protocol-shaped data and
    task-state lifecycle rules" only.
-3. Rovo-specific method narrowing - `rovo/agentConnectorMethods.ts`: narrows
-   JSON-RPC to `message/send`/`tasks/get`/`tasks/cancel`/`tasks/resubscribe`,
-   including a documented real-world quirk (Jira sends `id`, not `taskId`).
-4. Response formatting and runtime validation -
-   `rovo/agentConnectorFormatting.ts` (reshapes a `Task` into wire format) and
-   `rovo/agentConnectorValidation.ts` (zod discriminated-union validation of
-   "exactly one of task/statusUpdate/message/artifactUpdate").
-5. Provider-neutral signal mapping - `rovo/signalMapper.ts`: a pure,
+2. Shallow A2A runtime validation - `rovo/agentConnectorValidation.ts` shows
+   the important boundary: protocol checks like "exactly one of
+   task/statusUpdate/message/artifactUpdate" should be runtime validated, but
+   the helper should avoid deep semantic validation of every provider payload.
+   This layer should use `zod`, isolated to the future `/a2a` entrypoint,
+   because the prior hand-written path was verbose and less readable.
+3. Provider-neutral signal mapping - `rovo/signalMapper.ts`: a pure,
    exhaustive switch converting vendor-agnostic signal categories into A2A
    events, documented as "transport-independent: it does not know about
    taskId, contextId, timestamps, or wire encoding."
+4. Supporting JSON-RPC 2.0 envelope helpers - `util/jsonrpc.ts`:
+   request/response types, `isJsonRpcError`, `validateJsonRpcRequest`, response
+   builders. These are useful when supporting A2A/Rovo, but should not be sold
+   as a standalone generic JSON-RPC utility package before the A2A slice exists.
+5. Rovo-specific method narrowing - `rovo/agentConnectorMethods.ts`: narrows
+   JSON-RPC to `message/send`/`tasks/get`/`tasks/cancel`/`tasks/resubscribe`,
+   including a documented real-world quirk (Jira sends `id`, not `taskId`).
+6. Rovo response formatting - `rovo/agentConnectorFormatting.ts` reshapes a
+   `Task` into the wire format Jira expects. This belongs with the Rovo layer
+   as a pure value-to-value formatter, not as an HTTP/SSE writer.
 
-**Design note:** layers 1-2 and 5 are pure/sans-IO today in the reference
-package and are strong candidates to extract close to as-is. Layer 3 pulls
-in a new dependency (`zod`) not needed anywhere else in this library -
-worth deciding whether to adopt it or re-derive equivalent narrow checks by
-hand to avoid the dependency.
+The public API should use separate subpaths: `/a2a` for the A2A Contract Layer,
+A2A Contract Validation, and Remote Agent Signal Mapping; `/rovo` for Rovo/Jira
+remote-agent method narrowing, validation, and pure formatting. The Rovo subpath
+may depend on A2A; A2A must not depend on Rovo. A2A/Rovo helpers should also be
+usable without `ForgeRemoteContext`; route code composes authentication,
+Remote Invocation Contract Validation, and protocol handling explicitly.
+
+SSE transport should stay out of the first slice. The helper may build
+`StreamResponse` values and encode JSON-RPC stream envelopes, but setting
+headers, flushing, writing chunks, closing connections, and handling disconnects
+belong in examples, route code, or a later framework adapter.
 
 **Relationship to existing tickets:** refines ticket 15. Recommend
-splitting it into sequenced sub-slices (generic JSON-RPC -> A2A
-contract/state machine -> Rovo method narrowing -> formatting/validation)
-rather than one slice, since each layer has a different blast radius and a
-different "how Rovo-specific is this" answer.
+splitting it into sequenced sub-slices (A2A contract/state machine plus zod
+validation -> provider-neutral signal mapping -> supporting JSON-RPC envelopes
+where needed -> Rovo method narrowing and pure formatting) rather than one
+slice, since each layer has a different blast radius and a different "how
+Rovo-specific is this" answer.
 
 ### 3. Safe logging and log-context helpers (refines ticket 09)
 
@@ -278,17 +314,18 @@ Rough dependency shape, not a commitment:
 3. Theme 6 (regional/isolated-cloud resolution) should land before theme 4
    (product API access) gets a "call the right regional endpoint" story,
    and before ticket 13 needs an isolated-cloud storage base URL.
-4. Theme 1 (invocation-shape helpers) is independent of the others and
+4. Theme 1 (Remote Invocation Contract helpers) is independent of the others and
    could start anytime after ticket 08; it mostly needs decisions, not new
    infrastructure.
 5. Theme 2 (remote-agent/A2A) is the largest and most self-contained; its
-   internal layering (JSON-RPC -> A2A contract -> Rovo narrowing ->
-   formatting/validation) means it can be sequenced independently of
-   everything else in this document.
+   internal layering (A2A contract/validation -> signal mapping -> supporting
+   JSON-RPC envelopes -> Rovo narrowing/formatting) means it can be sequenced
+   independently of everything else in this document.
 
 ## Next step
 
 Use this document to revise `remote-future-work-tickets.md`: broaden ticket
 14's title and criteria, split ticket 15 into layered sub-tickets, add a
-new ticket area for theme 1 (invocation-shape helpers), and note themes 5
-and 7 as shared-infra prerequisites inside whichever tickets consume them.
+new ticket area for theme 1 (Remote Invocation Contract helpers), and note
+themes 5 and 7 as shared-infra prerequisites inside whichever tickets consume
+them.

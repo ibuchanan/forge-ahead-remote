@@ -57,6 +57,105 @@ and, when present, the Forwarded Forge Token Context needed by later helper
 capabilities.
 _Avoid_: Express request, JWT payload, auth result
 
+**Remote Invocation Contract**:
+The declared Forge Remote request category for an inbound remote route. It
+defines whether the request is authenticated by a Forge Invocation Token or by
+another mechanism, which forwarded tokens Forge guarantees for that route, and
+what acknowledgement or response shape the caller expects.
+_Avoid_: invocation shape, trigger type, framework route, A2A protocol,
+JSON-RPC contract
+
+**Remote Invocation Contract Validation**:
+The pure check that a Forge Remote Context satisfies a Remote Invocation
+Contract's incoming authentication and forwarded-token requirements before
+route-specific handling continues. Outgoing acknowledgement and response shape
+are part of the contract description, but not enforced by this validation.
+_Avoid_: middleware validation, route handling, protocol validation,
+framework adapter
+
+**Remote Invocation Contract Mismatch**:
+A Problem Details failure returned when a verified Forge Remote Context does not
+satisfy the declared Remote Invocation Contract, such as a required forwarded
+token being absent.
+_Avoid_: authentication failure, invalid FIT, thrown contract error, boolean
+validation failure
+
+**Remote Invocation Contract Match**:
+The narrowed success value returned after Remote Invocation Contract Validation,
+containing the Forge Remote Context plus typed guarantees promised by the matched
+contract.
+_Avoid_: original context, boolean success, unchecked route context
+
+**Remote Invocation Contract Preset**:
+A named, library-provided Remote Invocation Contract for a Forge Remote request
+category evidenced by reference implementations, such as Custom UI invocation,
+backend-function invocation, async event invocation, scheduled-trigger
+invocation, or External Remote Invocation.
+_Avoid_: hardcoded route, exhaustive Forge trigger list, framework preset
+
+**Invocation Subpath**:
+The future `@forge-ahead/remote/invocation` entrypoint for Remote Invocation
+Contract types, presets, builders, and validation.
+_Avoid_: context subpath, root auth API, framework adapter package
+
+**External Remote Invocation**:
+A Remote Invocation Contract for a public route reached from outside Forge that
+does not carry a Forge Invocation Token. Its authentication mechanism and any
+system-token rehydration are owned by the caller's application code or later
+helper capabilities, not by Remote Authentication.
+_Avoid_: unauthenticated Forge request, Basic auth helper, public trigger,
+stored system token flow
+
+**A2A Contract Layer**:
+The remote-agent helper layer that models Agent2Agent task, message, artifact,
+stream-event, and task-state lifecycle rules without binding them to Rovo method
+names, JSON-RPC transport, framework routes, Forge Remote Context, or storage.
+_Avoid_: generic JSON-RPC helper, Rovo connector, route handler, auth context,
+task store
+
+**A2A Contract Validation**:
+The shallow runtime checks that protect A2A route and adapter boundaries, such
+as stream-response variant exclusivity and legal task-state transitions, without
+deeply validating provider-specific payload content.
+_Avoid_: full schema validation, provider validation, business-rule validation,
+transport validation
+
+**A2A Subpath**:
+The future dependency-isolated `@forge-ahead/remote/a2a` entrypoint for A2A
+Contract Layer types, helpers, and validation. It may carry protocol-specific
+dependencies that should not be treated as part of the root Remote Authentication
+surface.
+_Avoid_: root remote API, auth dependency, generic protocol package
+
+**Rovo Agent Connector Layer**:
+The remote-agent helper layer that adapts the A2A Contract Layer to Atlassian's
+Rovo/Jira remote-agent JSON-RPC methods, parameter quirks, and response
+formatting expectations.
+_Avoid_: A2A core, generic JSON-RPC, route handler, simulator
+
+**Rovo Subpath**:
+The future `@forge-ahead/remote/rovo` entrypoint for Rovo Agent Connector Layer
+types, method narrowing, validation, and pure formatting.
+_Avoid_: A2A subpath, root auth API, route adapter, simulator
+
+**Rovo Agent Connector Formatting**:
+Pure value-to-value formatting that adapts A2A tasks or stream payloads to
+Rovo/Jira remote-agent JSON-RPC response expectations.
+_Avoid_: HTTP response writer, SSE writer, task storage, route adapter
+
+**Remote Agent Signal Mapping**:
+The provider-neutral translation from application or agent-runtime progress
+signals into A2A-visible state, content, and artifact events. It is pure and
+does not know task identifiers, context identifiers, timestamps, storage, or wire
+encoding.
+_Avoid_: runtime event bus, SSE adapter, provider event schema, task session
+
+**A2A Stream Envelope**:
+A pure encoded A2A JSON-RPC stream payload value ready for a transport layer to
+write. It does not set headers, flush, manage connections, handle disconnects,
+or own Server-Sent Events lifecycle behavior.
+_Avoid_: SSE writer, HTTP response, stream adapter, connection manager
+
 **Normalized Remote Context**:
 Forge Remote Context that contains explicit trusted or intentionally preserved
 values, not the raw request headers or HTTP request object it was built from.
