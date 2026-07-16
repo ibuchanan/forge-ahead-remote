@@ -116,6 +116,33 @@ one of `task`, `statusUpdate`, `message`, or `artifactUpdate`, and that an
 metadata or enforce route-level business rules; treat it as a shape check
 before route code interprets the payload, not a full content validator.
 
+`mapRemoteAgentSignal(signal)` converts a provider-neutral `RemoteAgentSignal`
+(lifecycle, completion, failure, rejection, cancellation, approval-needed,
+input-needed, content, tool, and artifact-produced categories) into a
+`MappedEvent` describing A2A-visible task-state, content, or artifact
+changes. It never requires or produces a task ID, context ID, timestamp, or
+wire encoding — runtime/session code supplies those when it turns a
+`MappedEvent` into a `StreamResponse` for transport:
+
+```ts
+import { mapRemoteAgentSignal } from "@forge-ahead/remote/a2a";
+
+const event = mapRemoteAgentSignal({ category: "completed", summary: "Done." });
+// event: { kind: "task-state-update", state: "completed", final: true, message: "Done." }
+
+// Runtime/session code adds identifiers, a timestamp, and encodes for transport:
+const streamResponse = {
+  statusUpdate: {
+    taskId,
+    contextId,
+    status: { state: event.state, timestamp: new Date().toISOString() },
+    message: event.message,
+    kind: "status-update",
+    final: event.final,
+  },
+};
+```
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, package scripts, and
