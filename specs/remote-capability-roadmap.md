@@ -2,7 +2,9 @@
 
 ## Status
 
-Draft.
+Themes 1 and 2 are done - see `remote-invocation-a2a-tickets.md` (tickets
+17-24), implemented and merged to `main`. Themes 3-7 below are still draft:
+not yet ticketed, and the next candidates to pick up.
 
 ## Purpose
 
@@ -39,6 +41,8 @@ Each theme below cites the specific files evidence came from.
 ## Major capability themes
 
 ### 1. Remote Invocation Contract helpers (new)
+
+**Status:** done - tickets 17-18 in `remote-invocation-a2a-tickets.md`.
 
 **What it is:** `validateForgeRemoteRequest()` currently assumes one shape: a
 synchronous request carrying a verifiable `Authorization` header. The
@@ -89,6 +93,8 @@ Remote itself defines. Recommend a new ticket area rather than folding this
 into 10.
 
 ### 2. A2A and Rovo remote-agent protocol layering (refines ticket 15)
+
+**Status:** done - tickets 19-24 in `remote-invocation-a2a-tickets.md`.
 
 **What it is:** ticket 15 currently reads as one undifferentiated slice.
 The reference package shows this decomposes cleanly into protocol layers, each
@@ -314,18 +320,27 @@ Rough dependency shape, not a commitment:
 3. Theme 6 (regional/isolated-cloud resolution) should land before theme 4
    (product API access) gets a "call the right regional endpoint" story,
    and before ticket 13 needs an isolated-cloud storage base URL.
-4. Theme 1 (Remote Invocation Contract helpers) is independent of the others and
-   could start anytime after ticket 08; it mostly needs decisions, not new
-   infrastructure.
-5. Theme 2 (remote-agent/A2A) is the largest and most self-contained; its
-   internal layering (A2A contract/validation -> signal mapping -> supporting
-   JSON-RPC envelopes -> Rovo narrowing/formatting) means it can be sequenced
-   independently of everything else in this document.
+4. **Done.** Theme 1 (Remote Invocation Contract helpers) was independent of
+   the others and started anytime after ticket 08; it mostly needed
+   decisions, not new infrastructure. Shipped as tickets 17-18.
+5. **Done.** Theme 2 (remote-agent/A2A) was the largest and most
+   self-contained; its internal layering (A2A contract/validation -> signal
+   mapping -> supporting JSON-RPC envelopes -> Rovo narrowing/formatting)
+   let it sequence independently of everything else in this document.
+   Shipped as tickets 19-24.
 
 ## Next step
 
-Use this document to revise `remote-future-work-tickets.md`: broaden ticket
-14's title and criteria, split ticket 15 into layered sub-tickets, add a
-new ticket area for theme 1 (Remote Invocation Contract helpers), and note
-themes 5 and 7 as shared-infra prerequisites inside whichever tickets consume
-them.
+Themes 1 and 2 are done (see `remote-invocation-a2a-tickets.md`). The
+remaining themes still need tickets written:
+
+- Theme 3 (safe logging) and theme 7 (cloud identifier helpers) are small,
+  low-risk, and unblock nothing else - good next tracer-bullet slices.
+- Theme 5 (generic cache abstraction) should be ticketed before or alongside
+  ticket 12 (system-token lifecycle) and ticket 13 (Forge storage).
+- Theme 6 (regional/isolated-cloud resolution) should be ticketed before
+  theme 4 (product API access) and before ticket 13's isolated-cloud storage
+  base URL need; this also means broadening ticket 14's title and criteria
+  as noted above.
+- Theme 4 (product API access with forwarded tokens) refines ticket 11 and
+  can follow once theme 6 lands.
