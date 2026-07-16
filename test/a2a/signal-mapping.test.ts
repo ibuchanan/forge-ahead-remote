@@ -12,6 +12,20 @@ describe("mapRemoteAgentSignal", () => {
     });
   });
 
+  it("maps runtime-started summary to the working task-state-update message", () => {
+    const event = mapRemoteAgentSignal({
+      category: "runtime-started",
+      summary: "Starting work on this task.",
+    });
+
+    expect(event).toEqual({
+      kind: "task-state-update",
+      state: "working",
+      final: false,
+      message: "Starting work on this task.",
+    });
+  });
+
   it("maps completed to a final completed task-state-update carrying the summary", () => {
     const event = mapRemoteAgentSignal({
       category: "completed",
@@ -103,6 +117,20 @@ describe("mapRemoteAgentSignal", () => {
       kind: "task-state-update",
       state: "working",
       final: false,
+    });
+  });
+
+  it("maps resumed summary to the working task-state-update message", () => {
+    const event = mapRemoteAgentSignal({
+      category: "resumed",
+      summary: "Resuming work after approval.",
+    });
+
+    expect(event).toEqual({
+      kind: "task-state-update",
+      state: "working",
+      final: false,
+      message: "Resuming work after approval.",
     });
   });
 

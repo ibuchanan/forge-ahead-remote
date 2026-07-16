@@ -1,14 +1,14 @@
 import type { Artifact, TaskState } from "./task-state";
 
 export type RemoteAgentSignal =
-  | { category: "runtime-started" }
+  | { category: "runtime-started"; summary?: string }
   | { category: "completed"; summary?: string }
   | { category: "failed"; reason: string }
   | { category: "rejected"; reason: string }
   | { category: "canceled"; reason?: string }
   | { category: "approval-needed"; detail: string }
   | { category: "input-needed"; detail: string }
-  | { category: "resumed" }
+  | { category: "resumed"; summary?: string }
   | { category: "thinking-process"; summary: string }
   | { category: "internal-thinking"; text: string }
   | { category: "model-request-progress"; detail: string }
@@ -39,7 +39,14 @@ export type MappedEvent =
 export function mapRemoteAgentSignal(signal: RemoteAgentSignal): MappedEvent {
   switch (signal.category) {
     case "runtime-started":
-      return { kind: "task-state-update", state: "working", final: false };
+      return signal.summary === undefined
+        ? { kind: "task-state-update", state: "working", final: false }
+        : {
+            kind: "task-state-update",
+            state: "working",
+            final: false,
+            message: signal.summary,
+          };
     case "completed":
       return {
         kind: "task-state-update",
@@ -83,7 +90,14 @@ export function mapRemoteAgentSignal(signal: RemoteAgentSignal): MappedEvent {
         message: signal.detail,
       };
     case "resumed":
-      return { kind: "task-state-update", state: "working", final: false };
+      return signal.summary === undefined
+        ? { kind: "task-state-update", state: "working", final: false }
+        : {
+            kind: "task-state-update",
+            state: "working",
+            final: false,
+            message: signal.summary,
+          };
     case "thinking-process":
       return { kind: "content-update", message: signal.summary };
     case "internal-thinking":
