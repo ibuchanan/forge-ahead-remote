@@ -27,9 +27,12 @@ vi.mock("../src/verify", () => {
 vi.mock("zod", () => {
   throw new Error("the context subpath must not import zod");
 });
+vi.mock("../src/a2a", () => {
+  throw new Error("the context subpath must not depend on the a2a subpath");
+});
 
 describe("@forge-ahead/remote/context import boundary", () => {
-  it("loads without pulling in jose, errors, frameworks, Forge, logging, verify.ts, or zod", async () => {
+  it("loads without pulling in jose, errors, frameworks, Forge, logging, verify.ts, zod, or the a2a subpath", async () => {
     await expect(import("../src/context")).resolves.toBeTruthy();
   });
 });

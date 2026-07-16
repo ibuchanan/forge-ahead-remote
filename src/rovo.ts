@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { createA2aResponseEnvelope, type Message, type Task } from "./a2a";
+import {
+  createA2aResponseEnvelope,
+  JsonRpcEnvelopeFields,
+  type JsonRpcResponse,
+  type Message,
+  type Task,
+} from "./a2a";
 
 export interface SendMessageParams {
   message: Message;
@@ -47,30 +53,19 @@ export interface RovoAgentConnectorRequest {
     | ResubscribeTaskParams;
 }
 
-export interface RovoAgentConnectorResponse {
-  jsonrpc: "2.0";
-  id: string | number;
-  result?: Task;
-  error?: {
-    code: number;
-    message: string;
-    data?: unknown;
-  };
-}
+export type RovoAgentConnectorResponse = JsonRpcResponse<Task>;
 
 const RovoAgentConnectorRequestSchema = z.union([
   z
     .object({
-      jsonrpc: z.literal("2.0"),
-      id: z.union([z.string(), z.number()]),
+      ...JsonRpcEnvelopeFields,
       method: z.literal("message/send"),
       params: z.object({ message: z.unknown() }).strict(),
     })
     .strict(),
   z
     .object({
-      jsonrpc: z.literal("2.0"),
-      id: z.union([z.string(), z.number()]),
+      ...JsonRpcEnvelopeFields,
       method: z.literal("tasks/get"),
       params: z
         .object({
@@ -82,16 +77,14 @@ const RovoAgentConnectorRequestSchema = z.union([
     .strict(),
   z
     .object({
-      jsonrpc: z.literal("2.0"),
-      id: z.union([z.string(), z.number()]),
+      ...JsonRpcEnvelopeFields,
       method: z.literal("tasks/cancel"),
       params: z.object({ id: z.string() }).strict(),
     })
     .strict(),
   z
     .object({
-      jsonrpc: z.literal("2.0"),
-      id: z.union([z.string(), z.number()]),
+      ...JsonRpcEnvelopeFields,
       method: z.literal("tasks/resubscribe"),
       params: z.object({ id: z.string() }).strict(),
     })
@@ -137,5 +130,5 @@ export function formatRovoAgentConnectorResponse(
   return createA2aResponseEnvelope(
     id,
     formatRovoAgentConnectorTaskResponse(task, contextId),
-  ) as RovoAgentConnectorResponse;
+  );
 }

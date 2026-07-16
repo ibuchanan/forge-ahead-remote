@@ -15,9 +15,12 @@ vi.mock("../src/verify", () => {
 vi.mock("../src/invocation", () => {
   throw new Error("the a2a subpath must not import the invocation subpath");
 });
+vi.mock("../src/rovo", () => {
+  throw new Error("the a2a subpath must not depend on the rovo subpath");
+});
 
 describe("@forge-ahead/remote/a2a import boundary", () => {
-  it("loads without pulling in jose, errors, context, verify, or invocation", async () => {
+  it("loads without pulling in jose, errors, context, verify, invocation, or rovo", async () => {
     await expect(import("../src/a2a")).resolves.toBeTruthy();
   });
 });
