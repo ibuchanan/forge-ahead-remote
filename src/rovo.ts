@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Message, Task } from "./a2a";
+import { createA2aResponseEnvelope, type Message, type Task } from "./a2a";
 
 export interface SendMessageParams {
   message: Message;
@@ -102,4 +102,40 @@ export function isRovoAgentConnectorRequest(
   request: unknown,
 ): request is RovoAgentConnectorRequest {
   return RovoAgentConnectorRequestSchema.safeParse(request).success;
+}
+
+export function formatRovoAgentConnectorTaskResponse(
+  task: Task,
+  contextId: string,
+): Task {
+  const messageId = task.status.message.messageId || task.id;
+
+  return {
+    id: task.id,
+    contextId,
+    status: {
+      state: task.status.state,
+      message: {
+        role: "agent",
+        parts: task.status.message.parts,
+        messageId,
+        taskId: task.id,
+        contextId,
+        kind: "message",
+      },
+      timestamp: task.status.timestamp,
+    },
+    kind: "task",
+  };
+}
+
+export function formatRovoAgentConnectorResponse(
+  id: string | number,
+  task: Task,
+  contextId: string,
+): RovoAgentConnectorResponse {
+  return createA2aResponseEnvelope(
+    id,
+    formatRovoAgentConnectorTaskResponse(task, contextId),
+  ) as RovoAgentConnectorResponse;
 }

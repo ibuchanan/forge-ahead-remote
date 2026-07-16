@@ -164,6 +164,22 @@ helpers have no dependency on Forge Remote Context, storage, route
 handlers, framework response types, or a simulator runtime, and the A2A
 Subpath has no dependency on this one.
 
+`formatRovoAgentConnectorTaskResponse(task, contextId)` and
+`formatRovoAgentConnectorResponse(id, task, contextId)` are pure
+value-to-value formatters: they accept an A2A `Task` and return a
+connector-ready `Task` or JSON-RPC response, preserving task/context
+identifiers, status, message parts, and required A2A `kind` fields (and
+falling back to the task id when `messageId` is empty). Route composition
+is pure formatting plus a caller-owned transport write, not a framework
+adapter:
+
+```ts
+import { formatRovoAgentConnectorResponse } from "@forge-ahead/remote/rovo";
+
+const response = formatRovoAgentConnectorResponse(requestId, task, contextId);
+res.json(response); // caller-owned transport write; this package never calls it
+```
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, package scripts, and
