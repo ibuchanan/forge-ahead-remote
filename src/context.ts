@@ -34,6 +34,19 @@ export interface BuildForgeRemoteContextInput {
   forwardedUserToken?: string;
 }
 
+function buildVerification(
+  verification: ForgeRemoteContextVerification,
+): ForgeRemoteContextVerification {
+  return verification;
+}
+
+function buildForwardedToken(
+  kind: ForwardedForgeTokenKind,
+  token: string,
+): ForwardedForgeToken {
+  return { kind, token };
+}
+
 function buildForwardedTokens(
   input: BuildForgeRemoteContextInput,
 ): ForgeRemoteContextForwardedTokens | undefined {
@@ -45,13 +58,16 @@ function buildForwardedTokens(
   }
   const forwardedTokens: ForgeRemoteContextForwardedTokens = {};
   if (input.forwardedSystemToken !== undefined) {
-    forwardedTokens.system = {
-      kind: "system",
-      token: input.forwardedSystemToken,
-    };
+    forwardedTokens.system = buildForwardedToken(
+      "system",
+      input.forwardedSystemToken,
+    );
   }
   if (input.forwardedUserToken !== undefined) {
-    forwardedTokens.user = { kind: "user", token: input.forwardedUserToken };
+    forwardedTokens.user = buildForwardedToken(
+      "user",
+      input.forwardedUserToken,
+    );
   }
   return forwardedTokens;
 }
@@ -61,7 +77,7 @@ export function buildForgeRemoteContext(
 ): ForgeRemoteContext {
   return {
     fit: input.fit,
-    verification: input.verification,
+    verification: buildVerification(input.verification),
     forwardedTokens: buildForwardedTokens(input),
   };
 }
