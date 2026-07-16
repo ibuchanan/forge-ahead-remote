@@ -26,6 +26,10 @@
       "import": "./dist/a2a.mjs",
       "types": "./dist/a2a.d.mts"
     },
+    "./rovo": {
+      "import": "./dist/rovo.mjs",
+      "types": "./dist/rovo.d.mts"
+    },
     "./package.json": "./package.json"
   },
   "main": "dist/index.mjs",

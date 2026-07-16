@@ -153,6 +153,17 @@ it does not set headers, flush, write to a response, close a connection, or
 expose an SSE writer abstraction — that stays in caller-owned transport
 code.
 
+`@forge-ahead/remote/rovo` depends on the A2A Subpath and narrows A2A-over-
+JSON-RPC request handling to Atlassian's Rovo/Jira remote-agent connector
+methods: `message/send`, `tasks/get`, `tasks/cancel`, and
+`tasks/resubscribe`. `isRovoAgentConnectorRequest(value)` validates a
+request's method name and matching params shape — critically, Jira sends
+the standard A2A `id` parameter for task lookup, cancellation, and
+resubscription, not `taskId`; a request using `taskId` is rejected. Rovo
+helpers have no dependency on Forge Remote Context, storage, route
+handlers, framework response types, or a simulator runtime, and the A2A
+Subpath has no dependency on this one.
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, package scripts, and
