@@ -52,7 +52,8 @@
   },
   "dependencies": {
     "@forge-ahead/errors": "github:ibuchanan/forge-ahead-errors",
-    "jose": "^6.2.3"
+    "jose": "^6.2.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.3",

@@ -108,6 +108,14 @@ Context, `jose`, storage, or framework request/response types, so it is
 usable anywhere A2A task-state rules need checking, independent of Forge
 Remote authentication.
 
+`isValidStreamResponse(response)` is a `zod`-backed protocol boundary check,
+scoped to this subpath only: it confirms a stream payload carries exactly
+one of `task`, `statusUpdate`, `message`, or `artifactUpdate`, and that an
+`artifactUpdate`'s artifact has a `parts` array with correctly typed
+`append`/`lastChunk` flags. It does not validate provider-specific artifact
+metadata or enforce route-level business rules; treat it as a shape check
+before route code interprets the payload, not a full content validator.
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, package scripts, and
