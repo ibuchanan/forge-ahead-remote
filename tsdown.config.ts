@@ -6,6 +6,7 @@ export default defineConfig({
     jwt: "./src/jwt.ts",
     context: "./src/context.ts",
     invocation: "./src/invocation.ts",
+    a2a: "./src/a2a.ts",
   },
   format: ["esm"],
   sourcemap: true,

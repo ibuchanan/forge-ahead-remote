@@ -99,6 +99,15 @@ event invocations expect) and the `externalRemoteInvocation` preset's
 `installationIdRequired`/`systemTokenRehydration` metadata describe expected
 route behavior but are never built or enforced by this package.
 
+`@forge-ahead/remote/a2a` exposes the Agent2Agent task, message, artifact,
+stream-response, and task-state lifecycle vocabulary (`TaskState`, `Task`,
+`Message`, `Artifact`, `StreamResponse`, and related event types) plus pure
+`isActiveState`, `isTerminalState`, `isValidTransition`, and
+`getAllowedTransitions` helpers. It has no dependency on Forge Remote
+Context, `jose`, storage, or framework request/response types, so it is
+usable anywhere A2A task-state rules need checking, independent of Forge
+Remote authentication.
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, package scripts, and

@@ -22,6 +22,10 @@
       "import": "./dist/invocation.mjs",
       "types": "./dist/invocation.d.mts"
     },
+    "./a2a": {
+      "import": "./dist/a2a.mjs",
+      "types": "./dist/a2a.d.mts"
+    },
     "./package.json": "./package.json"
   },
   "main": "dist/index.mjs",
