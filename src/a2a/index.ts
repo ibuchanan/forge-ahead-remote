@@ -1,13 +1,19 @@
-export type {
+export {
   Artifact,
   Message,
-  MessagePart,
+  Part,
+  Role,
   StreamResponse,
   Task,
   TaskArtifactUpdateEvent,
   TaskState,
+  TaskStatus,
   TaskStatusUpdateEvent,
-} from "./task-state";
+  taskStateFromJSON,
+  taskStateToJSON,
+} from "@a2a-js/sdk";
+
+// Legacy helpers that predate @a2a-js/sdk alignment.
 export {
   ACTIVE_TASK_STATES,
   getAllowedTransitions,
@@ -31,3 +37,6 @@ export {
   isJsonRpcResponse,
   JsonRpcEnvelopeFields,
 } from "./jsonrpc";
+
+/** @deprecated Use {@link Part} from `@a2a-js/sdk` instead. */
+export type { MessagePart } from "./task-state";

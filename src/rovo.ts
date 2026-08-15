@@ -4,7 +4,9 @@ import {
   JsonRpcEnvelopeFields,
   type JsonRpcResponse,
   type Message,
+  Role,
   type Task,
+  TaskState,
 } from "./a2a";
 
 export interface SendMessageParams {
@@ -97,28 +99,50 @@ export function isRovoAgentConnectorRequest(
   return RovoAgentConnectorRequestSchema.safeParse(request).success;
 }
 
+function resolveMessageId(task: Task): string {
+  const message = task.status?.message;
+  if (message === undefined) {
+    return task.id;
+  }
+  const candidate = message.messageId;
+  if (candidate === undefined || candidate === "") {
+    return task.id;
+  }
+  return candidate;
+}
+
+/**
+ * Formats an `@a2a-js/sdk` `Task` into the Jira/Rovo remote-agent connector
+ * response shape.
+ *
+ * The result is still an `@a2a-js/sdk`-compatible `Task`, but the message is
+ * rewritten to use the agent role and to embed the task/context identifiers
+ * that Jira expects.
+ */
 export function formatRovoAgentConnectorTaskResponse(
   task: Task,
   contextId: string,
 ): Task {
-  const messageId = task.status.message.messageId || task.id;
+  const messageId = resolveMessageId(task);
+  const baseMessage = task.status?.message;
 
   return {
-    id: task.id,
+    ...task,
     contextId,
     status: {
-      state: task.status.state,
+      state: task.status?.state ?? TaskState.TASK_STATE_UNSPECIFIED,
       message: {
-        role: "agent",
-        parts: task.status.message.parts,
         messageId,
         taskId: task.id,
         contextId,
-        kind: "message",
+        role: Role.ROLE_AGENT,
+        parts: baseMessage?.parts ?? [],
+        metadata: baseMessage?.metadata,
+        extensions: baseMessage?.extensions ?? [],
+        referenceTaskIds: baseMessage?.referenceTaskIds ?? [],
       },
-      timestamp: task.status.timestamp,
+      timestamp: task.status?.timestamp,
     },
-    kind: "task",
   };
 }
 

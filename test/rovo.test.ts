@@ -1,13 +1,35 @@
+import { Role, TaskState, type Task, type Message } from "@a2a-js/sdk";
 import { describe, expect, it } from "vitest";
-import type { Task } from "../src/a2a";
 import {
   formatRovoAgentConnectorResponse,
   formatRovoAgentConnectorTaskResponse,
   isRovoAgentConnectorRequest,
 } from "../src/rovo";
 
+function makeTextPart(text: string) {
+  return {
+    content: { $case: "text" as const, value: text },
+    metadata: {},
+    filename: "",
+    mediaType: "text/plain",
+  };
+}
+
+function makeMessage(messageId: string, parts: Message["parts"] = []): Message {
+  return {
+    messageId,
+    contextId: "",
+    taskId: "",
+    role: Role.ROLE_AGENT,
+    parts,
+    metadata: {},
+    extensions: [],
+    referenceTaskIds: [],
+  };
+}
+
 function makeTask(
-  state: Task["status"]["state"] = "submitted",
+  state: TaskState = TaskState.TASK_STATE_SUBMITTED,
   messageId = "msg-1",
 ): Task {
   return {
@@ -15,15 +37,12 @@ function makeTask(
     contextId: "ctx-456",
     status: {
       state,
-      message: {
-        role: "agent",
-        parts: [{ kind: "text", text: "Working on it" }],
-        messageId,
-        kind: "message",
-      },
+      message: makeMessage(messageId, [makeTextPart("Working on it")]),
       timestamp: "2026-01-01T00:00:00.000Z",
     },
-    kind: "task",
+    artifacts: [],
+    history: [],
+    metadata: {},
   };
 }
 
@@ -138,37 +157,39 @@ describe("formatRovoAgentConnectorTaskResponse", () => {
   });
 
   it("preserves the task status state and timestamp", () => {
-    const task = makeTask("working");
+    const task = makeTask(TaskState.TASK_STATE_WORKING);
 
     const formatted = formatRovoAgentConnectorTaskResponse(task, "ctx-1");
 
-    expect(formatted.status.state).toBe("working");
-    expect(formatted.status.timestamp).toBe("2026-01-01T00:00:00.000Z");
+    expect(formatted.status?.state).toBe(TaskState.TASK_STATE_WORKING);
+    expect(formatted.status?.timestamp).toBe("2026-01-01T00:00:00.000Z");
   });
 
-  it("sets the formatted message role to agent regardless of the stored role", () => {
+  it("sets the formatted message role to agent", () => {
     const task = makeTask();
-    task.status.message.role = "user";
+    if (task.status?.message) {
+      task.status.message.role = Role.ROLE_USER;
+    }
 
     const formatted = formatRovoAgentConnectorTaskResponse(task, "ctx-1");
 
-    expect(formatted.status.message.role).toBe("agent");
+    expect(formatted.status?.message?.role).toBe(Role.ROLE_AGENT);
   });
 
   it("uses the message's messageId when present", () => {
-    const task = makeTask("submitted", "my-message-id");
+    const task = makeTask(TaskState.TASK_STATE_SUBMITTED, "my-message-id");
 
     const formatted = formatRovoAgentConnectorTaskResponse(task, "ctx-1");
 
-    expect(formatted.status.message.messageId).toBe("my-message-id");
+    expect(formatted.status?.message?.messageId).toBe("my-message-id");
   });
 
   it("falls back to the task id when messageId is empty", () => {
-    const task = makeTask("submitted", "");
+    const task = makeTask(TaskState.TASK_STATE_SUBMITTED, "");
 
     const formatted = formatRovoAgentConnectorTaskResponse(task, "ctx-1");
 
-    expect(formatted.status.message.messageId).toBe("task-123");
+    expect(formatted.status?.message?.messageId).toBe("task-123");
   });
 
   it("propagates message parts unchanged", () => {
@@ -176,8 +197,8 @@ describe("formatRovoAgentConnectorTaskResponse", () => {
 
     const formatted = formatRovoAgentConnectorTaskResponse(task, "ctx-1");
 
-    expect(formatted.status.message.parts).toEqual([
-      { kind: "text", text: "Working on it" },
+    expect(formatted.status?.message?.parts).toEqual([
+      makeTextPart("Working on it"),
     ]);
   });
 
@@ -189,17 +210,8 @@ describe("formatRovoAgentConnectorTaskResponse", () => {
       "ctx-override",
     );
 
-    expect(formatted.status.message.taskId).toBe("task-123");
-    expect(formatted.status.message.contextId).toBe("ctx-override");
-  });
-
-  it("sets required A2A kind fields on the task and message", () => {
-    const task = makeTask();
-
-    const formatted = formatRovoAgentConnectorTaskResponse(task, "ctx-1");
-
-    expect(formatted.kind).toBe("task");
-    expect(formatted.status.message.kind).toBe("message");
+    expect(formatted.status?.message?.taskId).toBe("task-123");
+    expect(formatted.status?.message?.contextId).toBe("ctx-override");
   });
 });
 

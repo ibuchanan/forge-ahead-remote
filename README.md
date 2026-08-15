@@ -47,6 +47,33 @@ if (result.isErr()) {
 const context = result.value;
 ```
 
+Wire a Forge-authenticated A2A server with `@a2a-js/sdk` and the Express
+subpath:
+
+```ts
+import express from "express";
+import { jsonRpcHandler } from "@a2a-js/sdk/server/express";
+import {
+  forgeRemoteAuthMiddleware,
+  forgeRemoteUserBuilder,
+  forgeRemoteServerCallContextBuilder,
+} from "@forge-ahead/remote/express";
+
+const app = express();
+
+app.post(
+  "/a2a",
+  forgeRemoteAuthMiddleware({
+    issuer: "forge/invocation-token",
+  }),
+  jsonRpcHandler({
+    requestHandler: a2aRequestHandler,
+    userBuilder: forgeRemoteUserBuilder,
+    contextBuilder: forgeRemoteServerCallContextBuilder(),
+  }),
+);
+```
+
 ## Capabilities
 
 - Forge Remote authentication: `@forge-ahead/remote` verifies Forge
@@ -62,9 +89,17 @@ const context = result.value;
   responses, signal mapping, and A2A-scoped JSON-RPC envelopes.
 - Rovo connector helpers: `@forge-ahead/remote/rovo` validates Jira/Rovo
   remote-agent connector methods and formats connector-ready task responses.
+- Express integration: `@forge-ahead/remote/express` provides FIT validation
+  middleware, an A2A `UserBuilder`, and a `ServerCallContextBuilder` so an
+  `@a2a-js/sdk` server can be authenticated by Forge.
 
-The package does not include framework adapters, storage helpers, logging
-integration, product API clients, or an SSE transport writer.
+`@forge-ahead/remote` does not own the A2A server framework (task store,
+agent executor, request handler, transport writer, or server lifecycle). Those
+are owned by `@a2a-js/sdk`. This package only provides Forge-specific
+authentication and Atlassian formatting adapters.
+
+The package does not include storage helpers, logging integration, product API
+clients, or an SSE transport writer.
 
 ## Documentation
 

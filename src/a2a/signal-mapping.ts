@@ -1,4 +1,4 @@
-import type { Artifact, TaskState } from "./task-state";
+import { type Artifact, TaskState } from "@a2a-js/sdk";
 
 export type RemoteAgentSignal =
   | { category: "runtime-started"; summary?: string }
@@ -38,10 +38,14 @@ export type MappedEvent =
 
 function workingTaskStateUpdate(message?: string): MappedEvent {
   return message === undefined
-    ? { kind: "task-state-update", state: "working", final: false }
+    ? {
+        kind: "task-state-update",
+        state: TaskState.TASK_STATE_WORKING,
+        final: false,
+      }
     : {
         kind: "task-state-update",
-        state: "working",
+        state: TaskState.TASK_STATE_WORKING,
         final: false,
         message,
       };
@@ -54,42 +58,42 @@ export function mapRemoteAgentSignal(signal: RemoteAgentSignal): MappedEvent {
     case "completed":
       return {
         kind: "task-state-update",
-        state: "completed",
+        state: TaskState.TASK_STATE_COMPLETED,
         final: true,
         message: signal.summary,
       };
     case "failed":
       return {
         kind: "task-state-update",
-        state: "failed",
+        state: TaskState.TASK_STATE_FAILED,
         final: true,
         message: signal.reason,
       };
     case "rejected":
       return {
         kind: "task-state-update",
-        state: "rejected",
+        state: TaskState.TASK_STATE_REJECTED,
         final: true,
         message: signal.reason,
       };
     case "canceled":
       return {
         kind: "task-state-update",
-        state: "canceled",
+        state: TaskState.TASK_STATE_CANCELED,
         final: true,
         message: signal.reason,
       };
     case "approval-needed":
       return {
         kind: "task-state-update",
-        state: "auth-required",
+        state: TaskState.TASK_STATE_AUTH_REQUIRED,
         final: false,
         message: signal.detail,
       };
     case "input-needed":
       return {
         kind: "task-state-update",
-        state: "input-required",
+        state: TaskState.TASK_STATE_INPUT_REQUIRED,
         final: false,
         message: signal.detail,
       };
@@ -115,6 +119,10 @@ export function mapRemoteAgentSignal(signal: RemoteAgentSignal): MappedEvent {
     default:
       // Exceptional fallback for a signal category this mapper does not
       // recognize. Normal, defined categories never reach this branch.
-      return { kind: "task-state-update", state: "unknown", final: false };
+      return {
+        kind: "task-state-update",
+        state: TaskState.TASK_STATE_UNSPECIFIED,
+        final: false,
+      };
   }
 }

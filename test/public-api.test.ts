@@ -29,6 +29,7 @@ describe("public API surface", () => {
         "JwtParseError",
         "buildForgeRemoteContext",
         "createJwksKeyStore",
+        "extractCloudId",
         "getKeyIdFromToken",
         "isJwtExpired",
         "parseJwt",

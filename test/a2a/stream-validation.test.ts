@@ -1,136 +1,101 @@
 import { describe, expect, it } from "vitest";
 import { isValidStreamResponse } from "../../src/a2a";
 
-function makeTaskVariant() {
+function makeTaskPayload() {
   return {
-    task: {
-      id: "task-1",
-      contextId: "context-1",
-      status: {
-        state: "submitted",
-        message: {
-          role: "agent",
-          parts: [],
-          messageId: "message-1",
-          kind: "message",
+    payload: {
+      $case: "task",
+      value: {
+        id: "task-1",
+        contextId: "context-1",
+        status: {
+          state: 2,
+          message: {
+            role: 2,
+            parts: [],
+            messageId: "message-1",
+          },
+          timestamp: "2026-07-16T00:00:00.000Z",
         },
-        timestamp: "2026-07-16T00:00:00.000Z",
+        artifacts: [],
+        history: [],
+        metadata: {},
       },
-      kind: "task",
     },
   };
 }
 
 describe("isValidStreamResponse", () => {
-  it("accepts a stream response carrying only a task", () => {
-    expect(isValidStreamResponse(makeTaskVariant())).toBe(true);
+  it("accepts a stream response carrying only a task payload", () => {
+    expect(isValidStreamResponse(makeTaskPayload())).toBe(true);
   });
 
-  it("rejects a stream response carrying no variant", () => {
+  it("rejects a stream response carrying no payload", () => {
     expect(isValidStreamResponse({})).toBe(false);
   });
 
-  it("accepts a stream response carrying only a status update", () => {
+  it("accepts a stream response carrying only a status update payload", () => {
     expect(
       isValidStreamResponse({
-        statusUpdate: {
-          taskId: "task-1",
-          contextId: "context-1",
-          status: { state: "working" },
-          kind: "status-update",
-          final: false,
-        },
-      }),
-    ).toBe(true);
-  });
-
-  it("accepts a stream response carrying only a message", () => {
-    expect(
-      isValidStreamResponse({
-        message: {
-          role: "agent",
-          parts: [{ kind: "text", text: "hello" }],
-          messageId: "message-1",
-          kind: "message",
-        },
-      }),
-    ).toBe(true);
-  });
-
-  it("accepts a stream response carrying a well-formed artifact update", () => {
-    expect(
-      isValidStreamResponse({
-        artifactUpdate: {
-          taskId: "task-1",
-          contextId: "context-1",
-          artifact: {
-            artifactId: "artifact-1",
-            parts: [{ kind: "text", text: "partial output" }],
+        payload: {
+          $case: "statusUpdate",
+          value: {
+            taskId: "task-1",
+            contextId: "context-1",
+            status: { state: 2 },
+            final: false,
           },
-          append: true,
-          lastChunk: false,
-          kind: "artifact-update",
         },
       }),
     ).toBe(true);
   });
 
-  it("rejects a stream response carrying more than one variant", () => {
+  it("accepts a stream response carrying only a message payload", () => {
     expect(
       isValidStreamResponse({
-        ...makeTaskVariant(),
-        statusUpdate: {
-          taskId: "task-1",
-          contextId: "context-1",
-          status: { state: "working" },
-          kind: "status-update",
-          final: false,
-        },
-      }),
-    ).toBe(false);
-  });
-
-  it("rejects an artifact update whose artifact is missing parts", () => {
-    expect(
-      isValidStreamResponse({
-        artifactUpdate: {
-          taskId: "task-1",
-          contextId: "context-1",
-          artifact: { artifactId: "artifact-1" },
-          kind: "artifact-update",
-        },
-      }),
-    ).toBe(false);
-  });
-
-  it("rejects an artifact update whose append flag is not a boolean", () => {
-    expect(
-      isValidStreamResponse({
-        artifactUpdate: {
-          taskId: "task-1",
-          contextId: "context-1",
-          artifact: { artifactId: "artifact-1", parts: [] },
-          append: "yes",
-          kind: "artifact-update",
-        },
-      }),
-    ).toBe(false);
-  });
-
-  it("accepts an artifact update carrying provider-specific metadata unchecked", () => {
-    expect(
-      isValidStreamResponse({
-        artifactUpdate: {
-          taskId: "task-1",
-          contextId: "context-1",
-          artifact: {
-            artifactId: "artifact-1",
+        payload: {
+          $case: "message",
+          value: {
+            role: 2,
             parts: [],
-            metadata: { anyProviderShapeAtAll: { nested: true } },
+            messageId: "message-1",
           },
-          kind: "artifact-update",
         },
       }),
     ).toBe(true);
+  });
+
+  it("accepts a stream response carrying only an artifact update payload", () => {
+    expect(
+      isValidStreamResponse({
+        payload: {
+          $case: "artifactUpdate",
+          value: {
+            taskId: "task-1",
+            contextId: "context-1",
+            artifact: {
+              artifactId: "artifact-1",
+              parts: [],
+            },
+          },
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it("rejects a stream response with an unrecognized payload case", () => {
+    expect(
+      isValidStreamResponse({
+        payload: { $case: "unknown", value: {} },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects a stream response without a payload case discriminator", () => {
+    expect(
+      isValidStreamResponse({
+        payload: { value: {} },
+      }),
+    ).toBe(false);
   });
 });

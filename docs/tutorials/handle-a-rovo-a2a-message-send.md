@@ -25,11 +25,22 @@ import {
   encodeA2aStreamEnvelope,
   isValidStreamResponse,
   mapRemoteAgentSignal,
+  Role,
+  TaskState,
 } from "../dist/a2a.mjs";
 import {
   formatRovoAgentConnectorResponse,
   isRovoAgentConnectorRequest,
 } from "../dist/rovo.mjs";
+
+function textPart(text) {
+  return {
+    content: { $case: "text", value: text },
+    filename: "",
+    mediaType: "text/plain",
+    metadata: {},
+  };
+}
 
 const request = {
   jsonrpc: "2.0",
@@ -60,11 +71,13 @@ const task = {
   id: taskId,
   contextId,
   status: {
-    state: "submitted",
+    state: TaskState.TASK_STATE_SUBMITTED,
     message: agentMessage("Queued."),
     timestamp: nextTimestamp(),
   },
-  kind: "task",
+  artifacts: [],
+  history: [],
+  metadata: {},
 };
 
 function nextTimestamp() {
@@ -74,29 +87,38 @@ function nextTimestamp() {
 
 function agentMessage(text) {
   return {
-    role: "agent",
-    parts: [{ kind: "text", text }],
+    role: Role.ROLE_AGENT,
+    parts: [textPart(text)],
     messageId: `agent-message-${messageNumber++}`,
     taskId,
     contextId,
-    kind: "message",
+    metadata: {},
+    extensions: [],
+    referenceTaskIds: [],
   };
 }
 
 function streamResponseFromMappedEvent(event) {
   if (event.kind === "content-update") {
-    return { message: agentMessage(event.message) };
+    return {
+      payload: {
+        $case: "message",
+        value: agentMessage(event.message),
+      },
+    };
   }
 
   if (event.kind === "artifact-update") {
     return {
-      artifactUpdate: {
-        taskId,
-        contextId,
-        artifact: event.artifact,
-        append: event.append,
-        lastChunk: event.lastChunk,
-        kind: "artifact-update",
+      payload: {
+        $case: "artifactUpdate",
+        value: {
+          taskId,
+          contextId,
+          artifact: event.artifact,
+          append: event.append,
+          lastChunk: event.lastChunk,
+        },
       },
     };
   }
@@ -109,13 +131,15 @@ function streamResponseFromMappedEvent(event) {
   };
 
   return {
-    statusUpdate: {
-      taskId,
-      contextId,
-      status: { state: event.state, timestamp },
-      message: task.status.message,
-      kind: "status-update",
-      final: event.final,
+    payload: {
+      $case: "statusUpdate",
+      value: {
+        taskId,
+        contextId,
+        status: { state: event.state, timestamp },
+        message: task.status.message,
+        final: event.final,
+      },
     },
   };
 }
@@ -129,7 +153,10 @@ const signals = [
     artifact: {
       artifactId: "implementation-summary",
       name: "Implementation summary",
-      parts: [{ kind: "text", text: "Added the first route skeleton." }],
+      description: "",
+      parts: [textPart("Added the first route skeleton.")],
+      metadata: {},
+      extensions: [],
     },
     lastChunk: true,
   },
@@ -173,13 +200,12 @@ The first line will be:
 accepted message/send
 ```
 
-The next lines will start with SSE-shaped A2A chunks:
+The next lines will start with SSE-shaped A2A v1.0 chunks:
 
 <!-- markdownlint-disable MD013 -->
 
 ```txt
-data: {"jsonrpc":"2.0","id":"request-1","result":{"statusUpdate":{"taskId":"task-1","contextId":"context-1","status":{"state":"working"
-data: {"jsonrpc":"2.0","id":"request-1","result":{"message":{"role":"agent","parts":[{"kind":"text","text":"Reading the Jira issue."}]
+data: {"jsonrpc":"2.0","id":"request-1","result":{"payload":{"$case":"statusUpdate","value":{"taskId":"task-1","contextId":"context-1","status":{"state":2
 ```
 
 <!-- markdownlint-enable MD013 -->
@@ -194,23 +220,32 @@ The final JSON-RPC response will end with a completed task:
     "id": "task-1",
     "contextId": "context-1",
     "status": {
-      "state": "completed",
+      "state": 3,
       "message": {
-        "role": "agent",
+        "role": 2,
         "parts": [
           {
-            "kind": "text",
-            "text": "Ready for Jira."
+            "content": {
+              "$case": "text",
+              "value": "Ready for Jira."
+            },
+            "filename": "",
+            "mediaType": "text/plain",
+            "metadata": {}
           }
         ],
         "messageId": "agent-message-5",
         "taskId": "task-1",
         "contextId": "context-1",
-        "kind": "message"
+        "metadata": {},
+        "extensions": [],
+        "referenceTaskIds": []
       },
       "timestamp": "2026-07-16T00:00:00.003Z"
     },
-    "kind": "task"
+    "artifacts": [],
+    "history": [],
+    "metadata": {}
   }
 }
 ```

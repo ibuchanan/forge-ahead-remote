@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { mapRemoteAgentSignal, type RemoteAgentSignal } from "../../src/a2a";
+import {
+  type Artifact,
+  mapRemoteAgentSignal,
+  type RemoteAgentSignal,
+  TaskState,
+} from "../../src/a2a";
+
+function makeArtifact(artifactId: string): Artifact {
+  return {
+    artifactId,
+    name: "",
+    description: "",
+    parts: [],
+    metadata: {},
+    extensions: [],
+  };
+}
 
 describe("mapRemoteAgentSignal", () => {
   it("maps runtime-started to a non-final working task-state-update", () => {
@@ -7,7 +23,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "working",
+      state: TaskState.TASK_STATE_WORKING,
       final: false,
     });
   });
@@ -20,7 +36,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "working",
+      state: TaskState.TASK_STATE_WORKING,
       final: false,
       message: "Starting work on this task.",
     });
@@ -34,7 +50,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "completed",
+      state: TaskState.TASK_STATE_COMPLETED,
       final: true,
       message: "Implementation finished.",
     });
@@ -48,7 +64,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "failed",
+      state: TaskState.TASK_STATE_FAILED,
       final: true,
       message: "Could not apply the patch.",
     });
@@ -62,7 +78,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "rejected",
+      state: TaskState.TASK_STATE_REJECTED,
       final: true,
       message: "Unsupported work item type.",
     });
@@ -76,7 +92,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "canceled",
+      state: TaskState.TASK_STATE_CANCELED,
       final: true,
       message: "Canceled by user.",
     });
@@ -90,7 +106,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "auth-required",
+      state: TaskState.TASK_STATE_AUTH_REQUIRED,
       final: false,
       message: "Approval required: push to main branch.",
     });
@@ -104,7 +120,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "input-required",
+      state: TaskState.TASK_STATE_INPUT_REQUIRED,
       final: false,
       message: "Input required: which branch should this target?",
     });
@@ -115,7 +131,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "working",
+      state: TaskState.TASK_STATE_WORKING,
       final: false,
     });
   });
@@ -128,7 +144,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "working",
+      state: TaskState.TASK_STATE_WORKING,
       final: false,
       message: "Resuming work after approval.",
     });
@@ -195,10 +211,7 @@ describe("mapRemoteAgentSignal", () => {
   });
 
   it("maps artifact-produced to an artifact-update carrying the artifact", () => {
-    const artifact = {
-      artifactId: "artifact-1",
-      parts: [{ kind: "text" as const, text: "Summary of changes" }],
-    };
+    const artifact = makeArtifact("artifact-1");
 
     const event = mapRemoteAgentSignal({
       category: "artifact-produced",
@@ -209,10 +222,7 @@ describe("mapRemoteAgentSignal", () => {
   });
 
   it("preserves append and lastChunk intent when present on artifact-produced", () => {
-    const artifact = {
-      artifactId: "artifact-1",
-      parts: [{ kind: "text" as const, text: "partial output" }],
-    };
+    const artifact = makeArtifact("artifact-1");
 
     const event = mapRemoteAgentSignal({
       category: "artifact-produced",
@@ -245,20 +255,20 @@ describe("mapRemoteAgentSignal", () => {
     { category: "tool-result", detail: "File read." },
     {
       category: "artifact-produced",
-      artifact: { artifactId: "artifact-1", parts: [] },
+      artifact: makeArtifact("artifact-1"),
     },
   ];
 
-  it("never maps a normal, defined signal category to the unknown state", () => {
+  it("never maps a normal, defined signal category to the unspecified state", () => {
     for (const signal of ALL_NORMAL_SIGNALS) {
       const event = mapRemoteAgentSignal(signal);
       if (event.kind === "task-state-update") {
-        expect(event.state).not.toBe("unknown");
+        expect(event.state).not.toBe(TaskState.TASK_STATE_UNSPECIFIED);
       }
     }
   });
 
-  it("falls back to a non-final unknown task-state-update for an unrecognized signal category", () => {
+  it("falls back to a non-final unspecified task-state-update for an unrecognized signal category", () => {
     const malformedSignal = {
       category: "some-provider-specific-event-name",
     } as unknown as RemoteAgentSignal;
@@ -267,7 +277,7 @@ describe("mapRemoteAgentSignal", () => {
 
     expect(event).toEqual({
       kind: "task-state-update",
-      state: "unknown",
+      state: TaskState.TASK_STATE_UNSPECIFIED,
       final: false,
     });
   });

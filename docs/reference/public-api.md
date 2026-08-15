@@ -7,10 +7,11 @@
 | Field | Value |
 | --- | --- |
 | Package name | `@forge-ahead/remote` |
-| Module format | ESM |
+| Module format | ESM + CommonJS |
 | Node version | `>=22` |
-| Runtime dependencies | `@forge-ahead/errors`, `jose`, `zod` |
-| Build output | `dist/*.mjs`, `dist/*.d.mts` |
+| Runtime dependencies | `@forge-ahead/errors`, `@a2a-js/sdk`, `jose`, `zod` |
+| Optional peer dependencies | `express` (used by `@forge-ahead/remote/express`) |
+| Build output | `dist/*.mjs`, `dist/*.cjs`, `dist/*.d.mts`, `dist/*.d.cts` |
 
 ## Entrypoints
 
@@ -20,8 +21,9 @@
 | `@forge-ahead/remote/jwt` | `src/jwt.ts` | Pure JWT parsing and inspection helpers. |
 | `@forge-ahead/remote/context` | `src/context.ts` | Pure Forge Remote context types and builder. |
 | `@forge-ahead/remote/invocation` | `src/invocation.ts` | Remote Invocation Contract types, presets, and validation. |
-| `@forge-ahead/remote/a2a` | `src/a2a/index.ts` | A2A task, stream, signal, transition, and JSON-RPC helpers. |
-| `@forge-ahead/remote/rovo` | `src/rovo.ts` | Rovo/Jira remote-agent connector request validation and formatting. |
+| `@forge-ahead/remote/a2a` | `src/a2a/index.ts` | Re-exports `@a2a-js/sdk` A2A types plus legacy task-state helpers and JSON-RPC envelope helpers. |
+| `@forge-ahead/remote/rovo` | `src/rovo.ts` | Rovo/Jira remote-agent connector request validation and formatting using `@a2a-js/sdk` task types. |
+| `@forge-ahead/remote/express` | `src/express.ts` | FIT validation middleware, A2A `UserBuilder`, and `ServerCallContextBuilder` for Express. |
 
 ## Root Exports
 
@@ -37,6 +39,7 @@
 | `buildForgeRemoteContext(input)` | function | Builds a `ForgeRemoteContext` from already verified values. |
 | `parseJwt(jwt)` | function | Parses a three-part JWT without verifying it. |
 | `getKeyIdFromToken(jwt)` | function | Returns the JWT header `kid` when it is a string. |
+| `extractCloudId(ari)` | function | Extracts a Jira `cloudId` from an Atlassian site ARI. |
 | `isJwtExpired(jwt, nowEpochSeconds)` | function | Returns `true` when the JWT `exp` claim is numeric and expired. |
 | `JwtParseError` | class | Error thrown by malformed JWT parsing. |
 
@@ -103,13 +106,18 @@
 
 ## A2A Exports
 
+`@forge-ahead/remote/a2a` re-exports the A2A types from `@a2a-js/sdk` so
+consumers can use one import for the Forge-specific adapters. Where the local
+helpers still exist, they are deprecated and kept only for migration.
+
 | Export | Kind | Description |
 | --- | --- | --- |
-| `TaskState` | type | A2A task state union. |
-| `Task`, `Message`, `MessagePart`, `Artifact` | types | A2A task, message, part, and artifact values. |
-| `TaskStatusUpdateEvent` | type | A2A task status update event. |
-| `TaskArtifactUpdateEvent` | type | A2A artifact update event. |
-| `StreamResponse` | type | Union-shaped A2A stream response container. |
+| `TaskState` | enum | `@a2a-js/sdk` protobuf task-state enum. |
+| `Task`, `Message`, `Part`, `Artifact` | types | Re-exported `@a2a-js/sdk` task, message, part, and artifact values. |
+| `TaskStatus`, `TaskStatusUpdateEvent`, `TaskArtifactUpdateEvent` | types | Re-exported `@a2a-js/sdk` status and event values. |
+| `StreamResponse` | type | Re-exported `@a2a-js/sdk` stream response container. |
+| `Role` | enum | Re-exported `@a2a-js/sdk` role enum. |
+| `MessagePart` | type | Deprecated alias for `@a2a-js/sdk` `Part`. |
 | `MappedEvent` | type | Provider-neutral signal mapping output. |
 | `RemoteAgentSignal` | type | Provider-neutral runtime signal input. |
 | `JsonRpcRequest` | type | JSON-RPC request envelope shape. |
@@ -128,6 +136,16 @@
 | `createA2aErrorEnvelope(id, code, message, data?)` | function | Creates a JSON-RPC response envelope with `error`. |
 | `isJsonRpcResponse(response)` | function | JSON-RPC response envelope predicate. |
 | `encodeA2aStreamEnvelope(response)` | function | Encodes a JSON-RPC response as an SSE `data:` chunk string. |
+
+## Express Exports
+
+| Export | Kind | Description |
+| --- | --- | --- |
+| `ForgeRemoteRequest` | type | Express `Request` extended with `forgeRemoteContext?`. |
+| `ForgeRemoteAuthMiddlewareOptions` | type | FIT validation options plus forwarded-token header names. |
+| `forgeRemoteAuthMiddleware(options)` | function | Express middleware that validates the FIT and attaches the context. |
+| `forgeRemoteUserBuilder(req)` | function | A2A `UserBuilder` that reads the attached context. |
+| `forgeRemoteServerCallContextBuilder()` | function | Returns an A2A `ServerCallContextBuilder` that sets tenant from the Jira cloudId. |
 
 ## Rovo Exports
 
@@ -149,7 +167,7 @@
 | Surface | Status |
 | --- | --- |
 | `@forge-ahead/remote/verify` | Not exposed in `package.json` exports. |
-| Framework adapters | Not included in this package. |
+| Framework adapters | Only the Forge FIT Express adapter is exposed via `@forge-ahead/remote/express`. |
 | Logging integration | Not included in this package. |
 | Storage integration | Not included in this package. |
 | SSE transport writer | Not included in this package. |
