@@ -65,7 +65,7 @@ postprocessors = []
 [git]
 # Parse commits according to the conventional commits specification.
 # See https://www.conventionalcommits.org
-conventional_commits = false
+conventional_commits = true
 # Exclude commits that do not match the conventional commits specification.
 filter_unconventional = true
 # Split commits on newlines, treating each line as an individual commit.
@@ -79,3 +79,9 @@ topo_order = false
 # Order of commits in each group/release within the changelog.
 # Allowed values: newest, oldest
 sort_commits = "newest"
+
+[bump]
+initial_tag = "0.1.0"
+features_always_bump_minor = true
+breaking_always_bump_major = true
+no_increment_regex = "chore|ci|docs|build|refactor|style|test"
