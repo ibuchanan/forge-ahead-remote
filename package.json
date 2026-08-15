@@ -7,28 +7,74 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.mts"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./jwt": {
-      "import": "./dist/jwt.mjs",
-      "types": "./dist/jwt.d.mts"
+      "import": {
+        "types": "./dist/jwt.d.mts",
+        "default": "./dist/jwt.mjs"
+      },
+      "require": {
+        "types": "./dist/jwt.d.cts",
+        "default": "./dist/jwt.cjs"
+      }
     },
     "./context": {
-      "import": "./dist/context.mjs",
-      "types": "./dist/context.d.mts"
+      "import": {
+        "types": "./dist/context.d.mts",
+        "default": "./dist/context.mjs"
+      },
+      "require": {
+        "types": "./dist/context.d.cts",
+        "default": "./dist/context.cjs"
+      }
     },
     "./invocation": {
-      "import": "./dist/invocation.mjs",
-      "types": "./dist/invocation.d.mts"
+      "import": {
+        "types": "./dist/invocation.d.mts",
+        "default": "./dist/invocation.mjs"
+      },
+      "require": {
+        "types": "./dist/invocation.d.cts",
+        "default": "./dist/invocation.cjs"
+      }
     },
     "./a2a": {
-      "import": "./dist/a2a.mjs",
-      "types": "./dist/a2a.d.mts"
+      "import": {
+        "types": "./dist/a2a.d.mts",
+        "default": "./dist/a2a.mjs"
+      },
+      "require": {
+        "types": "./dist/a2a.d.cts",
+        "default": "./dist/a2a.cjs"
+      }
     },
     "./rovo": {
-      "import": "./dist/rovo.mjs",
-      "types": "./dist/rovo.d.mts"
+      "import": {
+        "types": "./dist/rovo.d.mts",
+        "default": "./dist/rovo.mjs"
+      },
+      "require": {
+        "types": "./dist/rovo.d.cts",
+        "default": "./dist/rovo.cjs"
+      }
+    },
+    "./express": {
+      "import": {
+        "types": "./dist/express.d.mts",
+        "default": "./dist/express.mjs"
+      },
+      "require": {
+        "types": "./dist/express.d.cts",
+        "default": "./dist/express.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -40,15 +86,17 @@
   "scripts": {
     "build": "tsdown",
     "changelog": "touch CHANGELOG.md && git cliff --offline --unreleased --prepend CHANGELOG.md",
-    "check": "npm run format:check && npm run lint:check && npm run typecheck && npm run test",
+    "check": "npm run format:check && npm run lint:check && npm run typecheck && npm run test && npm run build",
     "clean": "rm -rf ./node_modules && rm package-lock.json && rm -rf ./dist && rm -rf .cocoindex_code",
     "dev": "tsdown --watch",
     "format": "biome format --write",
+    "pack:check": "npm pack --dry-run --ignore-scripts",
     "format:check": "biome format",
     "lint": "lefthook run lint",
     "lint:check": "biome lint",
     "lint:fix": "biome lint --write",
     "prepare": "npm run build && (lefthook install || true)",
+    "release:check": "npm run check && npm run test:coverage && npm run pack:check",
     "release:prepare": "scripts/release-prepare.sh",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -56,18 +104,29 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@a2a-js/sdk": "^1.0.1",
     "@forge-ahead/errors": "github:ibuchanan/forge-ahead-errors",
     "jose": "^6.2.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.3",
+    "@types/express": "^5.0.6",
     "@types/node": "22",
     "@vitest/coverage-v8": "^4.1.10",
+    "express": "^5.2.1",
     "lefthook": "^2.1",
     "tsdown": "^0.22",
     "typescript": "^5.9",
     "vitest": "^4.1"
+  },
+  "peerDependencies": {
+    "express": "^4.21.2 || ^5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=22"

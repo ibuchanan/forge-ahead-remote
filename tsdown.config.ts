@@ -8,8 +8,9 @@ export default defineConfig({
     invocation: "./src/invocation.ts",
     a2a: "./src/a2a/index.ts",
     rovo: "./src/rovo.ts",
+    express: "./src/express.ts",
   },
-  format: ["esm"],
+  format: ["esm", "cjs"],
   sourcemap: true,
   target: "node22",
 });
