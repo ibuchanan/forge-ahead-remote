@@ -27,7 +27,6 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
-package-lock.json
 .turbo
 # CocoIndex Code (ccc)
 /.cocoindex_code/
