@@ -181,5 +181,5 @@ export interface HttpAuthFailureResponse {
 export function toHttpAuthFailureResponse(
   problem: ProblemDetails,
 ): HttpAuthFailureResponse {
-  return { status: problem.status, body: problem };
+  return { status: problem.status ?? 500, body: problem };
 }
