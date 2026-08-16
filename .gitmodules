@@ -1,9 +1,0 @@
-[submodule "specs/explore-jira-agent-assignment"]
-	path = specs/explore-jira-agent-assignment
-	url = https://github.com/ibuchanan/explore-jira-agent-assignment.git
-[submodule "specs/forge-remote-app"]
-	path = specs/forge-remote-app
-	url = https://ian_buchanan@bitbucket.org/atlassian/forge-remote-app.git
-[submodule "specs/forge-remote-nodejs"]
-	path = specs/forge-remote-nodejs
-	url = https://ian_buchanan@bitbucket.org/atlassian/forge-remote-nodejs.git
