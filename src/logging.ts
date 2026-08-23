@@ -205,3 +205,134 @@ export function createRemoteAuthRejectedRecord(
     problem: summarizeProblem(input.problem),
   };
 }
+
+interface A2aRecordCorrelation {
+  requestId?: string;
+  traceId?: string;
+  spanId?: string;
+}
+
+interface A2aRecordIdentifiers extends A2aRecordCorrelation {
+  taskId?: string;
+  contextId?: string;
+}
+
+export interface RemoteA2aSignalMappedRecordInput extends A2aRecordIdentifiers {
+  signalCategory: string;
+  mappedKind: string;
+  state?: string;
+  final?: boolean;
+}
+
+export interface RemoteA2aSignalMappedRecord {
+  event: "remote.a2a.signal.mapped";
+  level: "debug";
+  message: "Remote Agent signal mapped to A2A event";
+  requestId?: string;
+  traceId?: string;
+  spanId?: string;
+  a2a: {
+    signalCategory: string;
+    mappedKind: string;
+    state?: string;
+    final?: boolean;
+    taskId?: string;
+    contextId?: string;
+  };
+}
+
+export function createRemoteA2aSignalMappedRecord(
+  input: RemoteA2aSignalMappedRecordInput,
+): RemoteA2aSignalMappedRecord {
+  return {
+    event: "remote.a2a.signal.mapped",
+    level: "debug",
+    message: "Remote Agent signal mapped to A2A event",
+    ...(input.requestId === undefined ? {} : { requestId: input.requestId }),
+    ...(input.traceId === undefined ? {} : { traceId: input.traceId }),
+    ...(input.spanId === undefined ? {} : { spanId: input.spanId }),
+    a2a: {
+      signalCategory: input.signalCategory,
+      mappedKind: input.mappedKind,
+      ...(input.state === undefined ? {} : { state: input.state }),
+      ...(input.final === undefined ? {} : { final: input.final }),
+      ...(input.taskId === undefined ? {} : { taskId: input.taskId }),
+      ...(input.contextId === undefined ? {} : { contextId: input.contextId }),
+    },
+  };
+}
+
+export interface RemoteA2aStreamEncodedRecordInput
+  extends A2aRecordIdentifiers {
+  streamResponseKind: string;
+}
+
+export interface RemoteA2aStreamEncodedRecord {
+  event: "remote.a2a.stream.encoded";
+  level: "debug";
+  message: "A2A stream envelope encoded";
+  requestId?: string;
+  traceId?: string;
+  spanId?: string;
+  a2a: {
+    streamResponseKind: string;
+    taskId?: string;
+    contextId?: string;
+  };
+}
+
+export function createRemoteA2aStreamEncodedRecord(
+  input: RemoteA2aStreamEncodedRecordInput,
+): RemoteA2aStreamEncodedRecord {
+  return {
+    event: "remote.a2a.stream.encoded",
+    level: "debug",
+    message: "A2A stream envelope encoded",
+    ...(input.requestId === undefined ? {} : { requestId: input.requestId }),
+    ...(input.traceId === undefined ? {} : { traceId: input.traceId }),
+    ...(input.spanId === undefined ? {} : { spanId: input.spanId }),
+    a2a: {
+      streamResponseKind: input.streamResponseKind,
+      ...(input.taskId === undefined ? {} : { taskId: input.taskId }),
+      ...(input.contextId === undefined ? {} : { contextId: input.contextId }),
+    },
+  };
+}
+
+export interface RemoteA2aCompletedRecordInput extends A2aRecordIdentifiers {
+  state: string;
+}
+
+export interface RemoteA2aCompletedRecord {
+  event: "remote.a2a.completed";
+  level: "info";
+  message: "A2A task reached terminal state";
+  requestId?: string;
+  traceId?: string;
+  spanId?: string;
+  a2a: {
+    state: string;
+    final: true;
+    taskId?: string;
+    contextId?: string;
+  };
+}
+
+export function createRemoteA2aCompletedRecord(
+  input: RemoteA2aCompletedRecordInput,
+): RemoteA2aCompletedRecord {
+  return {
+    event: "remote.a2a.completed",
+    level: "info",
+    message: "A2A task reached terminal state",
+    ...(input.requestId === undefined ? {} : { requestId: input.requestId }),
+    ...(input.traceId === undefined ? {} : { traceId: input.traceId }),
+    ...(input.spanId === undefined ? {} : { spanId: input.spanId }),
+    a2a: {
+      state: input.state,
+      final: true,
+      ...(input.taskId === undefined ? {} : { taskId: input.taskId }),
+      ...(input.contextId === undefined ? {} : { contextId: input.contextId }),
+    },
+  };
+}
