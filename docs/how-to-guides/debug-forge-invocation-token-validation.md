@@ -37,6 +37,47 @@ the FIT,
 decoded claims,
 or JWKS key material.
 
+## Emit the safe request narrative
+
+Use record builders from `@forge-ahead/remote/logging` and send their output to
+your application-owned logger. Do not manually choose fields from a request or
+`ForgeRemoteContext`.
+
+```ts
+import {
+  createRemoteAuthAcceptedRecord,
+  createRemoteAuthRejectedRecord,
+  createRemoteInvocationMatchedRecord,
+  createRemoteInvocationMismatchedRecord,
+  emitRemoteLogRecord,
+} from "@forge-ahead/remote/logging";
+
+const correlation = { requestId, traceId, spanId };
+
+if (result.isErr()) {
+  emitRemoteLogRecord(
+    logger,
+    createRemoteAuthRejectedRecord({ ...correlation, problem: result.error }),
+  );
+} else {
+  emitRemoteLogRecord(
+    logger,
+    createRemoteAuthAcceptedRecord({ ...correlation, context: result.value }),
+  );
+}
+```
+
+For an accepted request, continue the same correlation through the route:
+
+1. `remote.auth.accepted` or `remote.auth.rejected`
+2. `remote.invocation.matched` or `remote.invocation.mismatched`
+3. `remote.a2a.signal.mapped` and `remote.a2a.stream.encoded`, when applicable
+4. `remote.a2a.completed` when the task reaches a terminal state
+
+Use the `createRemoteA2a*Record` builders for the final two stages. The adapter
+selects `debug`, `info`, or `warn` from the record level; logger selection,
+sinks, retention, and sampling remain application-owned.
+
 ## Diagnose the reported failure
 
 | Status and detail                                                      | Check                                                                                                                                | Likely owner                                |

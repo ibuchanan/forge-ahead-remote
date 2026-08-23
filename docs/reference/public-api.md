@@ -156,6 +156,9 @@
 | `createRemoteInvocationMatchedRecord(input)` | function | Creates a `remote.invocation.matched` record. |
 | `createRemoteInvocationMismatchedRecord(input)` | function | Creates a `remote.invocation.mismatched` record with a safe problem summary. |
 | `RemoteAuthAcceptedRecordInput`, `RemoteAuthAcceptedRecord`, `RemoteAuthRejectedRecordInput`, `RemoteAuthRejectedRecord`, `RemoteInvocationMatchedRecordInput`, `RemoteInvocationMatchedRecord`, `RemoteInvocationMismatchedRecordInput`, `RemoteInvocationMismatchedRecord`, `ProblemLogSummary` | types | Inputs, structured record shapes, and the whitelist-only Problem Details summary. |
+| `RemoteLogRecord` | type | Union of every safe structured record emitted by this subpath. |
+| `RemoteLogRecordLogger` | type | Application-owned logger interface with a method for each log level. |
+| `emitRemoteLogRecord(logger, record)` | function | Sends a safe structured record to its matching application-owned logger level. |
 
 ## A2A Exports
 

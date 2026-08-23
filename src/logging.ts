@@ -336,3 +336,26 @@ export function createRemoteA2aCompletedRecord(
     },
   };
 }
+
+export type RemoteLogRecord =
+  | RemoteAuthAcceptedRecord
+  | RemoteAuthRejectedRecord
+  | RemoteInvocationMatchedRecord
+  | RemoteInvocationMismatchedRecord
+  | RemoteA2aSignalMappedRecord
+  | RemoteA2aStreamEncodedRecord
+  | RemoteA2aCompletedRecord;
+
+export interface RemoteLogRecordLogger {
+  debug(record: RemoteLogRecord): void;
+  info(record: RemoteLogRecord): void;
+  warn(record: RemoteLogRecord): void;
+  error(record: RemoteLogRecord): void;
+}
+
+export function emitRemoteLogRecord(
+  logger: RemoteLogRecordLogger,
+  record: RemoteLogRecord,
+): void {
+  logger[record.level](record);
+}
