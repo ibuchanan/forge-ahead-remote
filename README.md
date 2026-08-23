@@ -121,6 +121,7 @@ Platform references:
 | Debug a rejected FIT | [Debug Forge Invocation Token validation](docs/how-to-guides/debug-forge-invocation-token-validation.md) |
 | Look up exports and FIT policy | [Public API Reference](docs/reference/public-api.md) |
 | Understand FIT verification | [Forge Invocation Token JWT Verification](docs/explanation/fit-jwt-verification.md) |
+| Understand A2A and Forge Remote boundaries | [A2A SDK and Forge Remote Separation of Concerns](docs/explanation/a2a-sdk-separation-of-concerns.md) |
 | Understand the architecture | [Sans-IO Layering](docs/explanation/sans-io-layering.md) |
 | Match domain language | [CONTEXT.md](CONTEXT.md) |
 | Review design decisions | [docs/adr/](docs/adr/) |
