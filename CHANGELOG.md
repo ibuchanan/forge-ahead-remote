@@ -1,3 +1,10 @@
+## What's Changed in 0.3.0
+* NONE Add record logger adapter
+* NONE Add A2A lifecycle records
+* NONE Add pure logging subpath
+
+**Full Changelog**: https://github.com/ibuchanan/forge-ahead-remote/compare/v0.2.0...v0.3.0
+
 ## What's Changed in 0.2.0
 * Configure git-cliff for conventional commits and version bumping
 * NONE Ship CommonJS builds and add pack:check
