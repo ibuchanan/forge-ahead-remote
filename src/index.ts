@@ -1,3 +1,4 @@
+export { extractCloudId } from "./cloud-id";
 export type {
   BuildForgeRemoteContextInput,
   ForgeInvocationTokenPayload,
@@ -15,7 +16,6 @@ export {
   JwtParseError,
   parseJwt,
 } from "./jwt";
-export { extractCloudId } from "./cloud-id";
 export type {
   CreateJwksKeyStoreOptions,
   ForgeRemoteRequestHeaders,

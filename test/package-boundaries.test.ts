@@ -10,8 +10,8 @@ describe("package export map", () => {
     expect(Object.keys(packageJson.exports)).not.toContain("./verify");
   });
 
-  it("does not expose a logging subpath", () => {
-    expect(Object.keys(packageJson.exports)).not.toContain("./logging");
+  it("exposes logging only through its dedicated subpath", () => {
+    expect(Object.keys(packageJson.exports)).toContain("./logging");
   });
 });
 

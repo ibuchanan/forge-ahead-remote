@@ -55,7 +55,8 @@ export interface RovoAgentConnectorRequest {
     | ResubscribeTaskParams;
 }
 
-export type RovoAgentConnectorResponse = JsonRpcResponse<Task>;
+/** A2A v1 SendMessage response envelope containing a single task. */
+export type RovoAgentConnectorResponse = JsonRpcResponse<{ task: Task }>;
 
 const RovoAgentConnectorRequestSchema = z.union([
   z
@@ -151,8 +152,7 @@ export function formatRovoAgentConnectorResponse(
   task: Task,
   contextId: string,
 ): RovoAgentConnectorResponse {
-  return createA2aResponseEnvelope(
-    id,
-    formatRovoAgentConnectorTaskResponse(task, contextId),
-  );
+  return createA2aResponseEnvelope(id, {
+    task: formatRovoAgentConnectorTaskResponse(task, contextId),
+  });
 }

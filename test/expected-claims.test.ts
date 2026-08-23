@@ -93,15 +93,18 @@ describe("selectExpectedForgeInvocationClaims", () => {
     { app: "app-id-audience" },
     { app: {} },
     { app: { id: 123 } },
-  ])("returns a missing-audience problem for payload %o", (unverifiedPayload) => {
-    const result = selectExpectedForgeInvocationClaims({ unverifiedPayload });
+  ])(
+    "returns a missing-audience problem for payload %o",
+    (unverifiedPayload) => {
+      const result = selectExpectedForgeInvocationClaims({ unverifiedPayload });
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toEqual(
-      expect.objectContaining({
-        status: 401,
-        detail: "Unable to determine the expected audience",
-      }),
-    );
-  });
+      expect(result.isErr()).toBe(true);
+      expect(result._unsafeUnwrapErr()).toEqual(
+        expect.objectContaining({
+          status: 401,
+          detail: "Unable to determine the expected audience",
+        }),
+      );
+    },
+  );
 });

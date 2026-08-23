@@ -22,6 +22,7 @@
 | `@forge-ahead/remote/context` | `src/context.ts` | Pure Forge Remote context types and builder. |
 | `@forge-ahead/remote/invocation` | `src/invocation.ts` | Remote Invocation Contract types, presets, and validation. |
 | `@forge-ahead/remote/a2a` | `src/a2a/index.ts` | Re-exports `@a2a-js/sdk` A2A types plus legacy task-state helpers and JSON-RPC envelope helpers. |
+| `@forge-ahead/remote/logging` | `src/logging.ts` | Pure, whitelist-only Forge Remote log-record builders; it does not write to a log sink. |
 | `@forge-ahead/remote/rovo` | `src/rovo.ts` | Rovo/Jira remote-agent connector request validation and formatting using `@a2a-js/sdk` task types. |
 | `@forge-ahead/remote/express` | `src/express.ts` | FIT validation middleware, A2A `UserBuilder`, and `ServerCallContextBuilder` for Express. |
 
@@ -31,8 +32,8 @@
 | --- | --- | --- |
 | `ATLASSIAN_FORGE_JWKS_URL` | constant | Default Atlassian Forge JWKS URL. |
 | `createJwksKeyStore(options?)` | function | Creates a `jose` remote JWK set resolver. |
-| `verifyJwt(options)` | function | Verifies a JWT with `jose.jwtVerify`. |
-| `verifyAndParseJwt(options)` | function | Verifies a JWT and returns its payload. |
+| `verifyJwt(options)` | function | Verifies an `RS256` JWT with `jose.jwtVerify`. |
+| `verifyAndParseJwt(options)` | function | Verifies an `RS256` JWT and returns its payload. |
 | `validateAuthHeader(input)` | function | Validates a Bearer Forge Invocation Token and returns the verified payload. |
 | `validateForgeRemoteRequest(input)` | function | Validates the Authorization header and returns a `ForgeRemoteContext`. |
 | `toHttpAuthFailureResponse(problem)` | function | Maps a Problem Details auth failure to `{ status, body }`. |
@@ -76,14 +77,52 @@
 | `jwksUrl` | `string \| URL` | `ATLASSIAN_FORGE_JWKS_URL` | JWKS URL used when `jwks` is absent. |
 | `deriveAudience` | `(payload) => string \| undefined` | FIT `app.id` fallback | Request-boundary audience selection hook. |
 
+## JWT Verification Policy
+
+| Subject | Specification |
+| --- | --- |
+| Accepted JWS algorithm | `RS256` only. |
+| `RS256` meaning | RSASSA-PKCS1-v1_5 using SHA-256. |
+| Request-boundary protected-header fields | `validateAuthHeader` and `validateForgeRemoteRequest` require `alg: "RS256"` and a non-empty `kid`. |
+| JWKS selection | The injected or remote `jose` JWK set resolves a public RSA verification key using the protected header, including `alg` and `kid`. |
+| Signature verification | `jose.jwtVerify` verifies the signature before it returns a payload. |
+| Claim verification | `audience`, optional `issuer`, and expiry are verified by `jose.jwtVerify`. Request-boundary validators default issuer to `forge/invocation-token`. |
+| Unverified data | `deriveAudience` receives decoded, unverified FIT payload data only to select verification parameters. It is not trusted context. |
+| Isolated Cloud JWKS routing | Forge documents that an `icLabel` can select an isolated-cloud JWKS URL. Validate it before URL interpolation; inject the resulting `jwks` or `jwksUrl` rather than changing the RS256 policy. |
+
+## Forge Remote Sources
+
+| Source | Relevant subject |
+| --- | --- |
+| [Forge Remote invocation contract](https://developer.atlassian.com/platform/forge/forge-remote-invocation-contract/) | FIT Bearer Authorization header, remote request contract, and `401` for JWT validation failure. |
+| [Forge Remote essentials: verifying remote requests](https://developer.atlassian.com/platform/forge/remote/essentials/) | Forge JWKS, Application ID audience, `forge/invocation-token` issuer example, and remote verification responsibility. |
+| [Calling Atlassian app APIs from a remote](https://developer.atlassian.com/platform/forge/remote/calling-product-apis/) | Verified FIT context, `app.apiBaseUrl`, and forwarded OAuth-token use. |
+| [Bridge `requestRemote`](https://developer.atlassian.com/platform/forge/apis-reference/ui-api-bridge/requestRemote/) | FIT caching and automatic refresh behavior for `requestRemote` callers. |
+
+## JWT and JWS Standards
+
+| Source | Relevant subject |
+| --- | --- |
+| [RFC 7515: JSON Web Signature](https://www.rfc-editor.org/rfc/rfc7515) | JWS protected headers, including `alg` and `kid`, and signature verification. |
+| [RFC 7518 §3.3: JSON Web Algorithms](https://www.rfc-editor.org/rfc/rfc7518#section-3.3) | `RS256` as RSA PKCS#1 v1.5 using SHA-256. |
+| [RFC 7519: JSON Web Token](https://www.rfc-editor.org/rfc/rfc7519) | JWT compact serialization and registered claims such as `aud`, `iss`, and `exp`. |
+| [RFC 8725 §3.1: JWT Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725#section-3.1) | Explicit algorithm verification and algorithm-confusion prevention. |
+| [`jose` `jwtVerify`](https://github.com/panva/jose/blob/main/docs/jwt/verify/functions/jwtVerify.md) | The verifier used by this package. |
+| [`jose` remote JWKS](https://github.com/panva/jose/blob/main/docs/jwks/remote/functions/createRemoteJWKSet.md) | Remote JWKS key resolution. |
+
 ## Authentication Failures
 
 | Condition | Status |
 | --- | --- |
 | Missing or malformed Authorization header | `401` |
 | Malformed Forge Invocation Token | `401` |
+| Unsupported FIT signing algorithm | `401` |
+| Missing FIT key ID | `401` |
+| Unknown FIT signing key | `401` |
+| Invalid FIT signature | `401` |
+| Expired FIT | `401` |
+| Forbidden FIT claims | `401` |
 | Missing expected audience | `401` |
-| Rejected Forge Invocation Token | `401` |
 | Verification infrastructure failure | `502` |
 
 ## Invocation Exports
@@ -103,6 +142,20 @@
 | `asyncEventInvocation` | preset | Requires Forge Invocation Token authentication plus a system forwarded token and carries `202` acknowledgement metadata. |
 | `scheduledTriggerInvocation` | preset | Requires Forge Invocation Token authentication plus a system forwarded token. |
 | `externalRemoteInvocation` | preset | Uses caller-owned authentication and marks installation ID plus system-token rehydration metadata. |
+
+## Logging Exports
+
+`@forge-ahead/remote/logging` creates structured values only. It never selects or writes to a logging sink.
+
+| Export | Kind | Description |
+| --- | --- | --- |
+| `summarizeRemoteContext(context)` | function | Creates a whitelist-only context summary with verification, safe FIT identity fields, and token-presence booleans. |
+| `summarizeProblem(problem)` | function | Keeps only standard Problem Details fields. |
+| `createRemoteAuthAcceptedRecord(input)` | function | Creates a `remote.auth.accepted` record. |
+| `createRemoteAuthRejectedRecord(input)` | function | Creates a `remote.auth.rejected` record with a safe problem summary. |
+| `createRemoteInvocationMatchedRecord(input)` | function | Creates a `remote.invocation.matched` record. |
+| `createRemoteInvocationMismatchedRecord(input)` | function | Creates a `remote.invocation.mismatched` record with a safe problem summary. |
+| `RemoteAuthAcceptedRecordInput`, `RemoteAuthAcceptedRecord`, `RemoteAuthRejectedRecordInput`, `RemoteAuthRejectedRecord`, `RemoteInvocationMatchedRecordInput`, `RemoteInvocationMatchedRecord`, `RemoteInvocationMismatchedRecordInput`, `RemoteInvocationMismatchedRecord`, `ProblemLogSummary` | types | Inputs, structured record shapes, and the whitelist-only Problem Details summary. |
 
 ## A2A Exports
 
@@ -157,10 +210,10 @@ helpers still exist, they are deprecated and kept only for migration.
 | `ResubscribeTaskParams` | type | Params for `tasks/resubscribe`; contains `id`. |
 | `RovoAgentConnectorMethod` | type | `"message/send"`, `"tasks/get"`, `"tasks/cancel"`, or `"tasks/resubscribe"`. |
 | `RovoAgentConnectorRequest` | type | JSON-RPC request shape for supported Rovo/Jira remote-agent methods. |
-| `RovoAgentConnectorResponse` | type | JSON-RPC task response shape. |
+| `RovoAgentConnectorResponse` | type | A2A v1 `SendMessageResponse` JSON-RPC shape with the task at `result.task`. |
 | `isRovoAgentConnectorRequest(request)` | function | Method and params shape predicate. |
 | `formatRovoAgentConnectorTaskResponse(task, contextId)` | function | Formats an A2A task for connector responses. |
-| `formatRovoAgentConnectorResponse(id, task, contextId)` | function | Wraps the formatted task in a JSON-RPC response envelope. |
+| `formatRovoAgentConnectorResponse(id, task, contextId)` | function | Formats the task and returns it at `result.task`, retaining the request ID. |
 
 ## Non-Exported Surfaces
 
@@ -168,7 +221,7 @@ helpers still exist, they are deprecated and kept only for migration.
 | --- | --- |
 | `@forge-ahead/remote/verify` | Not exposed in `package.json` exports. |
 | Framework adapters | Only the Forge FIT Express adapter is exposed via `@forge-ahead/remote/express`. |
-| Logging integration | Not included in this package. |
+| Logging integration | The pure record builders are available only through `@forge-ahead/remote/logging`; concrete logger integration is not included. |
 | Storage integration | Not included in this package. |
 | SSE transport writer | Not included in this package. |
 

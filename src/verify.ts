@@ -2,7 +2,9 @@ import { err, ok, type ProblemDetails, type Result } from "@forge-ahead/errors";
 import * as jose from "jose";
 import {
   malformedForgeInvocationToken,
+  missingForgeInvocationTokenKeyId,
   missingOrMalformedAuthorization,
+  unsupportedForgeInvocationTokenAlgorithm,
   verificationFailureFromError,
 } from "./auth-failure";
 import {
@@ -15,6 +17,8 @@ import { type JwtPayload, parseJwt } from "./jwt";
 
 export const ATLASSIAN_FORGE_JWKS_URL =
   "https://forge.cdn.prod.atlassian-dev.net/.well-known/jwks.json";
+
+const FORGE_INVOCATION_TOKEN_ALGORITHM = "RS256";
 
 export interface CreateJwksKeyStoreOptions {
   jwksUrl?: string | URL;
@@ -45,6 +49,7 @@ export async function verifyJwt(
 ): Promise<jose.JWTVerifyResult> {
   const keyStore = resolveKeyStore(options);
   return jose.jwtVerify(options.token, keyStore, {
+    algorithms: [FORGE_INVOCATION_TOKEN_ALGORITHM],
     audience: options.audience,
     issuer: options.issuer,
   });
@@ -101,7 +106,14 @@ async function verifyForgeInvocationTokenFromAuthorization(
 
   let unverifiedPayload: ForgeInvocationTokenPayload;
   try {
-    unverifiedPayload = parseJwt(token).payload as ForgeInvocationTokenPayload;
+    const { header, payload } = parseJwt(token);
+    if (header.alg !== FORGE_INVOCATION_TOKEN_ALGORITHM) {
+      return unsupportedForgeInvocationTokenAlgorithm();
+    }
+    if (typeof header.kid !== "string" || header.kid.length === 0) {
+      return missingForgeInvocationTokenKeyId();
+    }
+    unverifiedPayload = payload as ForgeInvocationTokenPayload;
   } catch {
     return malformedForgeInvocationToken();
   }

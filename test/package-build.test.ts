@@ -11,6 +11,7 @@ const EXPECTED_SUBPATHS = [
   "./context",
   "./invocation",
   "./a2a",
+  "./logging",
   "./rovo",
   "./express",
   "./package.json",

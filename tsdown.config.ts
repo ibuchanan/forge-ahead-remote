@@ -7,6 +7,7 @@ export default defineConfig({
     context: "./src/context.ts",
     invocation: "./src/invocation.ts",
     a2a: "./src/a2a/index.ts",
+    logging: "./src/logging.ts",
     rovo: "./src/rovo.ts",
     express: "./src/express.ts",
   },

@@ -28,5 +28,6 @@ yarn-error.log*
 .env.*
 !.env.example
 .turbo
+.scratch/
 # CocoIndex Code (ccc)
 /.cocoindex_code/

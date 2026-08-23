@@ -13,10 +13,11 @@ Reviewed against `remote-invocation-a2a-tickets.md` (tickets 17-24, done):
 - **14 is broadened** per `remote-capability-roadmap.md` theme 6, from
   "JWKS policy" to "regional/isolated-cloud endpoint resolution" - see its
   entry below.
-- **09 now has design and example-app handoff docs** in
-  `remote-logging-extension-design.md` and `LOGGING.md`, but remains open for
-  runtime implementation. **11, 12, 13, 16 are untouched and still open**; none
-  of their acceptance criteria overlap with what 17-24 shipped.
+- **09 now has initial authentication and invocation record builders**, plus
+  design and example-app handoff docs in `remote-logging-extension-design.md`
+  and `LOGGING.md`. Its A2A record builders and example-app integration remain
+  open. **11, 12, 13, 16 are untouched and still open**; none of their
+  acceptance criteria overlap with what 17-24 shipped.
 - **10** (framework middleware) is still open and unaffected in scope, but
   now that `/invocation` exists, consider having its example route also
   demonstrate composing Remote Invocation Contract Validation as the

@@ -118,7 +118,9 @@ Platform references:
 | Learn the contract layer | [Validate a Custom UI Remote Context](docs/tutorials/validate-a-custom-ui-remote-context.md) |
 | Learn the Rovo/A2A path | [Handle a Rovo A2A Message Send](docs/tutorials/handle-a-rovo-a2a-message-send.md) |
 | Apply route contracts | [Apply Remote Invocation Contracts](docs/how-to-guides/apply-remote-invocation-contracts.md) |
-| Look up exports | [Public API Reference](docs/reference/public-api.md) |
+| Debug a rejected FIT | [Debug Forge Invocation Token validation](docs/how-to-guides/debug-forge-invocation-token-validation.md) |
+| Look up exports and FIT policy | [Public API Reference](docs/reference/public-api.md) |
+| Understand FIT verification | [Forge Invocation Token JWT Verification](docs/explanation/fit-jwt-verification.md) |
 | Understand the architecture | [Sans-IO Layering](docs/explanation/sans-io-layering.md) |
 | Match domain language | [CONTEXT.md](CONTEXT.md) |
 | Review design decisions | [docs/adr/](docs/adr/) |

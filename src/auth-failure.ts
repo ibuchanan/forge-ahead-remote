@@ -7,6 +7,12 @@ import * as jose from "jose";
 import { JwtParseError } from "./jwt";
 
 type RemoteAuthenticationFailureReason =
+  | "unsupported-forge-invocation-token-algorithm"
+  | "missing-forge-invocation-token-key-id"
+  | "unknown-forge-invocation-token-key"
+  | "expired-forge-invocation-token"
+  | "forbidden-forge-invocation-token-claims"
+  | "invalid-forge-invocation-token-signature"
   | "missing-or-malformed-authorization"
   | "malformed-forge-invocation-token"
   | "missing-expected-audience"
@@ -41,6 +47,18 @@ function toProblemStatus(reason: RemoteAuthenticationFailureReason): 401 | 502 {
 
 function toProblemMessage(reason: RemoteAuthenticationFailureReason): string {
   switch (reason) {
+    case "unsupported-forge-invocation-token-algorithm":
+      return "Forge Invocation Token uses an unsupported signing algorithm";
+    case "missing-forge-invocation-token-key-id":
+      return "Forge Invocation Token is missing a key ID";
+    case "unknown-forge-invocation-token-key":
+      return "Forge Invocation Token signing key is unknown";
+    case "expired-forge-invocation-token":
+      return "Forge Invocation Token has expired";
+    case "forbidden-forge-invocation-token-claims":
+      return "Forge Invocation Token claims are not permitted";
+    case "invalid-forge-invocation-token-signature":
+      return "Forge Invocation Token signature is invalid";
     case "missing-or-malformed-authorization":
       return "Missing or malformed Authorization header";
     case "malformed-forge-invocation-token":
@@ -62,6 +80,22 @@ function remoteAuthenticationFailure(
   );
 }
 
+export function unsupportedForgeInvocationTokenAlgorithm(): Result<
+  never,
+  ProblemDetails
+> {
+  return remoteAuthenticationFailure(
+    "unsupported-forge-invocation-token-algorithm",
+  );
+}
+
+export function missingForgeInvocationTokenKeyId(): Result<
+  never,
+  ProblemDetails
+> {
+  return remoteAuthenticationFailure("missing-forge-invocation-token-key-id");
+}
+
 export function missingOrMalformedAuthorization(): Result<
   never,
   ProblemDetails
@@ -80,6 +114,32 @@ export function missingExpectedAudience(): Result<never, ProblemDetails> {
 export function verificationFailureFromError(
   error: unknown,
 ): Result<never, ProblemDetails> {
+  if (
+    (typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ERR_JWT_EXPIRED") ||
+    (typeof error === "object" &&
+      error !== null &&
+      "claim" in error &&
+      error.claim === "exp") ||
+    error instanceof jose.errors.JWTExpired
+  ) {
+    return remoteAuthenticationFailure("expired-forge-invocation-token");
+  }
+  if (error instanceof jose.errors.JWTClaimValidationFailed) {
+    return remoteAuthenticationFailure(
+      "forbidden-forge-invocation-token-claims",
+    );
+  }
+  if (error instanceof jose.errors.JWSSignatureVerificationFailed) {
+    return remoteAuthenticationFailure(
+      "invalid-forge-invocation-token-signature",
+    );
+  }
+  if (error instanceof jose.errors.JWKSNoMatchingKey) {
+    return remoteAuthenticationFailure("unknown-forge-invocation-token-key");
+  }
   return remoteAuthenticationFailure(
     isAuthRejection(error)
       ? "forge-invocation-token-rejected"

@@ -56,6 +56,16 @@
         "default": "./dist/a2a.cjs"
       }
     },
+    "./logging": {
+      "import": {
+        "types": "./dist/logging.d.mts",
+        "default": "./dist/logging.mjs"
+      },
+      "require": {
+        "types": "./dist/logging.d.cts",
+        "default": "./dist/logging.cjs"
+      }
+    },
     "./rovo": {
       "import": {
         "types": "./dist/rovo.d.mts",
@@ -110,18 +120,18 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.3",
-    "@types/express": "^5.0.6",
+    "@biomejs/biome": "2.5.10",
+    "@types/express": "^5.0",
     "@types/node": "22",
-    "@vitest/coverage-v8": "^4.1.10",
-    "express": "^5.2.1",
+    "@vitest/coverage-v8": "^4.1",
+    "express": "^5.2",
     "lefthook": "^2.1",
     "tsdown": "^0.22",
     "typescript": "^5.9",
     "vitest": "^4.1"
   },
   "peerDependencies": {
-    "express": "^4.21.2 || ^5.1.0"
+    "express": "^4.21 || ^5.1"
   },
   "peerDependenciesMeta": {
     "express": {

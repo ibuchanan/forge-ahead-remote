@@ -211,11 +211,11 @@ specific framework, runtime, or integration style. Extensions may perform I/O or
 bind to middleware APIs, but the core library does not.
 _Avoid_: core feature, built-in adapter, required dependency
 
-**Remote Logging Extension**:
-A future Remote Extension Package that integrates Forge Remote Context with
-`@forge-ahead/logging`, including safe summaries and demo-oriented logging
-examples. It is not part of the auth-first core.
-_Avoid_: core summary helper, built-in logger, raw context logging
+**Remote Logging Subpath**:
+A pure `@forge-ahead/remote/logging` subpath that creates whitelist-only Forge
+Remote log records without selecting or writing to a logger. It is separate
+from the root API but ships in this package.
+_Avoid_: built-in logger, raw context logging, root logging export
 
 **Safe Remote Context Summary**:
 A whitelist-based log value derived from Forge Remote Context that exposes only

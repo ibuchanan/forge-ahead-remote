@@ -1,3 +1,4 @@
+import * as jose from "jose";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { validateAuthHeader } from "../src/index";
 import {
@@ -120,11 +121,13 @@ describe("validateAuthHeader", () => {
 
   it("returns a 401 Problem Details result for an expired token", async () => {
     const keyPair = await generateTestKeyPair("test-kid");
-    const token = await signTestJwt(
-      keyPair,
-      { sub: "user-1" },
-      { audience: "app-1", expiresIn: "-1h" },
-    );
+    const token = await new jose.SignJWT({ sub: "user-1" })
+      .setProtectedHeader({ alg: "RS256", kid: keyPair.kid })
+      .setAudience("app-1")
+      .setIssuer("forge/invocation-token")
+      .setIssuedAt(Math.floor(Date.now() / 1000) - 7200)
+      .setExpirationTime("-1h")
+      .sign(keyPair.privateKey);
 
     const result = await validateAuthHeader({
       authorization: `Bearer ${token}`,
@@ -134,7 +137,7 @@ describe("validateAuthHeader", () => {
 
     expectProblem(result, {
       status: 401,
-      detail: "Forge Invocation Token verification failed",
+      detail: "Forge Invocation Token has expired",
     });
   });
 
@@ -154,7 +157,7 @@ describe("validateAuthHeader", () => {
 
     expectProblem(result, {
       status: 401,
-      detail: "Forge Invocation Token verification failed",
+      detail: "Forge Invocation Token claims are not permitted",
     });
   });
 
@@ -174,7 +177,7 @@ describe("validateAuthHeader", () => {
 
     expectProblem(result, {
       status: 401,
-      detail: "Forge Invocation Token verification failed",
+      detail: "Forge Invocation Token claims are not permitted",
     });
   });
 
@@ -195,7 +198,7 @@ describe("validateAuthHeader", () => {
 
     expectProblem(result, {
       status: 401,
-      detail: "Forge Invocation Token verification failed",
+      detail: "Forge Invocation Token signature is invalid",
     });
   });
 
@@ -211,7 +214,7 @@ describe("validateAuthHeader", () => {
 
     expectProblem(result, {
       status: 401,
-      detail: "Forge Invocation Token verification failed",
+      detail: "Forge Invocation Token uses an unsupported signing algorithm",
     });
   });
 
@@ -328,5 +331,107 @@ describe("validateAuthHeader", () => {
     });
 
     expect(result.isOk()).toBe(true);
+  });
+
+  it("rejects an ES256 token without selecting a matching EC JWKS key", async () => {
+    const { publicKey, privateKey } = await jose.generateKeyPair("ES256");
+    const publicJwk = await jose.exportJWK(publicKey);
+    publicJwk.kid = "ec-key";
+    publicJwk.alg = "ES256";
+    const token = await new jose.SignJWT({ sub: "user-1" })
+      .setProtectedHeader({ alg: "ES256", kid: "ec-key" })
+      .setAudience("app-1")
+      .setIssuer("forge/invocation-token")
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(privateKey);
+    let jwksSelected = false;
+    const jwks = async () => {
+      jwksSelected = true;
+      return jose.importJWK(publicJwk, "ES256");
+    };
+
+    const result = await validateAuthHeader({
+      authorization: `Bearer ${token}`,
+      audience: "app-1",
+      jwks,
+    });
+
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token uses an unsupported signing algorithm",
+    });
+    expect(jwksSelected).toBe(false);
+  });
+
+  it("distinguishes an unknown JWKS key from an invalid signature", async () => {
+    const trustedKeyPair = await generateTestKeyPair("trusted-kid");
+    const unknownKeyPair = await generateTestKeyPair("unknown-kid");
+    const token = await signTestJwt(
+      unknownKeyPair,
+      { sub: "user-1" },
+      { audience: "app-1", issuer: "forge/invocation-token" },
+    );
+
+    const result = await validateAuthHeader({
+      authorization: `Bearer ${token}`,
+      audience: "app-1",
+      jwks: trustedKeyPair.jwks,
+    });
+
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token signing key is unknown",
+    });
+  });
+
+  it("rejects an RS256 FIT without a key ID before selecting a JWKS key", async () => {
+    const keyPair = await generateTestKeyPair("test-kid");
+    const token = await new jose.SignJWT({ sub: "user-1" })
+      .setProtectedHeader({ alg: "RS256" })
+      .setAudience("app-1")
+      .setIssuer("forge/invocation-token")
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(keyPair.privateKey);
+    let jwksSelected = false;
+    const jwks = async () => {
+      jwksSelected = true;
+      return jose.importJWK(keyPair.publicJwk, "RS256");
+    };
+
+    const result = await validateAuthHeader({
+      authorization: `Bearer ${token}`,
+      audience: "app-1",
+      jwks,
+    });
+
+    expectProblem(result, {
+      status: 401,
+      detail: "Forge Invocation Token is missing a key ID",
+    });
+    expect(jwksSelected).toBe(false);
+  });
+
+  it("selects the matching RSA key from a multi-key JWKS", async () => {
+    const matchingKeyPair = await generateTestKeyPair("matching-kid");
+    const otherKeyPair = await generateTestKeyPair("other-kid");
+    const token = await signTestJwt(
+      matchingKeyPair,
+      { sub: "user-1" },
+      { audience: "app-1", issuer: "forge/invocation-token" },
+    );
+    const jwks = jose.createLocalJWKSet({
+      keys: [otherKeyPair.publicJwk, matchingKeyPair.publicJwk],
+    });
+
+    const result = await validateAuthHeader({
+      authorization: `Bearer ${token}`,
+      audience: "app-1",
+      jwks,
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap().sub).toBe("user-1");
   });
 });

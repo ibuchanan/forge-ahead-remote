@@ -1,8 +1,7 @@
 import { TaskState } from "@a2a-js/sdk";
 
-export { TaskState };
-
 export type { Part as MessagePart } from "@a2a-js/sdk";
+export { TaskState };
 
 /**
  * Maps the legacy string representation of a task state to the

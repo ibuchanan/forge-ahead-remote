@@ -2,8 +2,10 @@
 
 ## Status
 
-This document captures the design input for future ticket 09, "Add a Remote
-Logging Extension slice." It does not add runtime code to this repository.
+The initial authentication and invocation record builders are implemented in
+`src/logging.ts` and exported as `@forge-ahead/remote/logging`. This document
+still defines the safety rules and future A2A record slices; it does not add a
+concrete logger or modify the reference app.
 
 The concrete proof case is the `specs/explore-jira-agent-assignment` app, but
 that app is not modified here. The handoff for that implementation lives in
@@ -11,19 +13,19 @@ that app is not modified here. The handoff for that implementation lives in
 
 ## Boundary
 
-The Remote Logging Extension is an optional Remote Extension Package, not part
-of the auth-first core package. This repository should keep these boundaries
-until a later implementation slice deliberately changes them:
+The first pure record-builder slices ship through the dedicated
+`@forge-ahead/remote/logging` subpath. They remain separate from the root API
+and must preserve these boundaries:
 
-- No `src/logging.ts` in `@forge-ahead/remote`.
-- No `./logging` export from `@forge-ahead/remote`.
-- No runtime dependency from `@forge-ahead/remote` to `@forge-ahead/logging`.
-- No recursive logging of `ForgeRemoteContext` or arbitrary Forge Invocation
-  Token claims.
+- `src/logging.ts` exports data-only, sink-neutral helpers.
+- `@forge-ahead/remote` does not re-export logging helpers from its root.
+- The package has no runtime dependency on a concrete logger.
+- Helpers never recursively log a `ForgeRemoteContext` or arbitrary Forge
+  Invocation Token claims.
 
-The future extension should build on public values from `@forge-ahead/remote`,
+The subpath may build on public values from `@forge-ahead/remote`,
 `@forge-ahead/remote/invocation`, `@forge-ahead/remote/a2a`, and
-`@forge-ahead/remote/rovo`. It should not re-parse raw request headers.
+`@forge-ahead/remote/rovo`. It must not re-parse raw request headers.
 
 ## Safe Remote Context Summary
 
@@ -156,10 +158,10 @@ The event names narrate the package layers:
 
 The logs are a demonstration narrative, not a hidden event channel.
 
-## Future API Shape
+## Current and Future API Shape
 
-When ticket 09 becomes an implementation slice, the extension should start with
-pure value builders. Candidate operations:
+The implemented subpath starts with pure value builders. Remaining slices may
+add the following operations without adding a sink dependency:
 
 ```ts
 summarizeRemoteContext(context): SafeRemoteContextSummary;
@@ -182,4 +184,4 @@ logging-neutral.
 - SSE transport writing or connection lifecycle logging.
 - Product API, storage, or system-token lifecycle logging.
 - Deep validation of A2A message, artifact, or provider payload content.
-- A public `@forge-ahead/remote/logging` subpath in this repository.
+- A concrete logger adapter or a root `@forge-ahead/remote` logging export.

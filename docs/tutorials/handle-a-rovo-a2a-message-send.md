@@ -217,35 +217,37 @@ The final JSON-RPC response will end with a completed task:
   "jsonrpc": "2.0",
   "id": "request-1",
   "result": {
-    "id": "task-1",
-    "contextId": "context-1",
-    "status": {
-      "state": 3,
-      "message": {
-        "role": 2,
-        "parts": [
-          {
-            "content": {
-              "$case": "text",
-              "value": "Ready for Jira."
-            },
-            "filename": "",
-            "mediaType": "text/plain",
-            "metadata": {}
-          }
-        ],
-        "messageId": "agent-message-5",
-        "taskId": "task-1",
-        "contextId": "context-1",
-        "metadata": {},
-        "extensions": [],
-        "referenceTaskIds": []
+    "task": {
+      "id": "task-1",
+      "contextId": "context-1",
+      "status": {
+        "state": 3,
+        "message": {
+          "role": 2,
+          "parts": [
+            {
+              "content": {
+                "$case": "text",
+                "value": "Ready for Jira."
+              },
+              "filename": "",
+              "mediaType": "text/plain",
+              "metadata": {}
+            }
+          ],
+          "messageId": "agent-message-5",
+          "taskId": "task-1",
+          "contextId": "context-1",
+          "metadata": {},
+          "extensions": [],
+          "referenceTaskIds": []
+        },
+        "timestamp": "2026-07-16T00:00:00.003Z"
       },
-      "timestamp": "2026-07-16T00:00:00.003Z"
-    },
-    "artifacts": [],
-    "history": [],
-    "metadata": {}
+      "artifacts": [],
+      "history": [],
+      "metadata": {}
+    }
   }
 }
 ```

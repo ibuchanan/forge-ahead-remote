@@ -1,11 +1,11 @@
-import type { Request, RequestHandler } from "express";
 import {
   ServerCallContext,
   type ServerCallContextBuilder,
   type User,
 } from "@a2a-js/sdk/server";
-import type { ForgeRemoteContext } from "./context";
+import type { Request, RequestHandler } from "express";
 import { extractCloudId } from "./cloud-id";
+import type { ForgeRemoteContext } from "./context";
 import {
   type ForgeRemoteRequestHeaders,
   toHttpAuthFailureResponse,
@@ -153,9 +153,7 @@ export function forgeRemoteServerCallContextBuilder(): ServerCallContextBuilder 
 /**
  * @deprecated Use the interface-specific {@link ForgeRemoteRequest} instead.
  */
-export type { Request } from "express";
-
 /**
  * @deprecated Use the explicit middleware return type instead.
  */
-export type { RequestHandler } from "express";
+export type { Request, RequestHandler } from "express";

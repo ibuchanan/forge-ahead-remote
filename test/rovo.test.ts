@@ -31,13 +31,14 @@ function makeMessage(messageId: string, parts: Message["parts"] = []): Message {
 function makeTask(
   state: TaskState = TaskState.TASK_STATE_SUBMITTED,
   messageId = "msg-1",
+  parts: Message["parts"] = [makeTextPart("Working on it")],
 ): Task {
   return {
     id: "task-123",
     contextId: "ctx-456",
     status: {
       state,
-      message: makeMessage(messageId, [makeTextPart("Working on it")]),
+      message: makeMessage(messageId, parts),
       timestamp: "2026-01-01T00:00:00.000Z",
     },
     artifacts: [],
@@ -216,8 +217,10 @@ describe("formatRovoAgentConnectorTaskResponse", () => {
 });
 
 describe("formatRovoAgentConnectorResponse", () => {
-  it("composes a formatted task into a connector-ready JSON-RPC response envelope", () => {
-    const task = makeTask();
+  it("wraps a completed SendMessage task with its matching agent message", () => {
+    const task = makeTask(TaskState.TASK_STATE_COMPLETED, "agent-message-123", [
+      makeTextPart("Minimal connector is working."),
+    ]);
 
     const response = formatRovoAgentConnectorResponse(
       "request-1",
@@ -225,10 +228,25 @@ describe("formatRovoAgentConnectorResponse", () => {
       "ctx-override",
     );
 
-    expect(response).toEqual({
+    expect(response).toMatchObject({
       jsonrpc: "2.0",
       id: "request-1",
-      result: formatRovoAgentConnectorTaskResponse(task, "ctx-override"),
+      result: {
+        task: {
+          id: "task-123",
+          contextId: "ctx-override",
+          status: {
+            state: TaskState.TASK_STATE_COMPLETED,
+            message: {
+              role: Role.ROLE_AGENT,
+              messageId: "agent-message-123",
+              taskId: "task-123",
+              contextId: "ctx-override",
+              parts: [makeTextPart("Minimal connector is working.")],
+            },
+          },
+        },
+      },
     });
   });
 });
