@@ -1,6 +1,6 @@
 {
   "name": "@forge-ahead/remote",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Framework-neutral authentication and A2A/Rovo helpers for Atlassian Forge Remote services.",
   "private": true,
   "license": "Apache-2.0",

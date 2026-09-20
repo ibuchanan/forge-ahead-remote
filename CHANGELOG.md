@@ -1,3 +1,12 @@
+## What's Changed in 0.4.0
+* NONE Remove completed implementation specs
+* NONE Add Forge Remote Fastify adapter
+* NONE Add remote health checks feature spec
+* NONE Remove obsolete vendored reference specs and submodules
+* NONE Explain A2A and Forge Remote boundaries
+
+**Full Changelog**: https://github.com/ibuchanan/forge-ahead-remote/compare/v0.3.0...v0.4.0
+
 ## What's Changed in 0.3.0
 * NONE Add record logger adapter
 * NONE Add A2A lifecycle records
