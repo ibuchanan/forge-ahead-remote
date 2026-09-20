@@ -1,8 +1,24 @@
 {
   "name": "@forge-ahead/remote",
   "version": "0.3.0",
+  "description": "Framework-neutral authentication and A2A/Rovo helpers for Atlassian Forge Remote services.",
   "private": true,
   "license": "Apache-2.0",
+  "keywords": [
+    "atlassian",
+    "forge",
+    "forge-remote",
+    "a2a",
+    "rovo",
+    "authentication",
+    "jwt"
+  ],
+  "homepage": "https://github.com/ibuchanan/forge-ahead-remote#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ibuchanan/forge-ahead-remote.git"
+  },
+  "author": "Ian Buchanan",
   "sideEffects": false,
   "type": "module",
   "exports": {
@@ -86,6 +102,16 @@
         "default": "./dist/express.cjs"
       }
     },
+    "./fastify": {
+      "import": {
+        "types": "./dist/fastify.d.mts",
+        "default": "./dist/fastify.mjs"
+      },
+      "require": {
+        "types": "./dist/fastify.d.cts",
+        "default": "./dist/fastify.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "main": "dist/index.mjs",
@@ -100,11 +126,11 @@
     "clean": "rm -rf ./node_modules && rm package-lock.json && rm -rf ./dist && rm -rf .cocoindex_code",
     "dev": "tsdown --watch",
     "format": "biome format --write",
-    "pack:check": "npm pack --dry-run --ignore-scripts",
     "format:check": "biome format",
     "lint": "lefthook run lint",
     "lint:check": "biome lint",
     "lint:fix": "biome lint --write",
+    "pack:check": "npm pack --dry-run --ignore-scripts",
     "prepare": "npm run build && (lefthook install || true)",
     "release:check": "npm run check && npm run test:coverage && npm run pack:check",
     "release:prepare": "scripts/release-prepare.sh",
@@ -114,27 +140,32 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@a2a-js/sdk": "^1.0.1",
+    "@a2a-js/sdk": "^1.2",
     "@forge-ahead/errors": "github:ibuchanan/forge-ahead-errors",
-    "jose": "^6.2.3",
-    "zod": "^4.4.3"
+    "jose": "^6.2",
+    "zod": "^4.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.10",
+    "@biomejs/biome": "2.5.14",
     "@types/express": "^5.0",
     "@types/node": "22",
-    "@vitest/coverage-v8": "^4.1",
+    "@vitest/coverage-v8": "^5.0",
     "express": "^5.2",
+    "fastify": "^5.12",
     "lefthook": "^2.1",
-    "tsdown": "^0.22",
+    "tsdown": "^0.23",
     "typescript": "^5.9",
-    "vitest": "^4.1"
+    "vitest": "^5.0"
   },
   "peerDependencies": {
-    "express": "^4.21 || ^5.1"
+    "express": "^4.21 || ^5.1",
+    "fastify": "^5.0"
   },
   "peerDependenciesMeta": {
     "express": {
+      "optional": true
+    },
+    "fastify": {
       "optional": true
     }
   },

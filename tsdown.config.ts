@@ -10,6 +10,7 @@ export default defineConfig({
     logging: "./src/logging.ts",
     rovo: "./src/rovo.ts",
     express: "./src/express.ts",
+    fastify: "./src/fastify.ts",
   },
   format: ["esm", "cjs"],
   sourcemap: true,

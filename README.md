@@ -11,17 +11,19 @@ transport writes.
 
 This package is currently private (`"private": true` in `package.json`), so use
 it from this repository or a configured private workspace rather than installing
-it from the public npm registry. The package is published as ESM and targets
-Node 22 or newer.
+it from the public npm registry. It exposes ESM and CommonJS entrypoints and
+targets Node 22 or newer.
 
 ## Quick Start
 
-Install dependencies and build the package from this repository:
+Install dependencies and verify the package from this repository:
 
 ```sh
 npm install
-npm run build
+npm run check
 ```
+
+Use `npm run build` when you only need the distributable package output.
 
 Authenticate a Forge Remote request into framework-neutral values:
 
@@ -45,6 +47,22 @@ if (result.isErr()) {
 }
 
 const context = result.value;
+```
+
+Authenticate Fastify routes with the Fastify subpath. The hook attaches
+`request.forgeRemoteContext` only after successful authentication; route handlers
+must not trust it before the hook has run. Forge's forwarded token headers default
+to `x-forge-oauth-system` and `x-forge-oauth-user`; override them when your
+proxy uses different names.
+
+```ts
+import fastify from "fastify";
+import { forgeRemoteAuthHook } from "@forge-ahead/remote/fastify";
+
+const app = fastify();
+app.addHook("onRequest", forgeRemoteAuthHook());
+
+app.get("/work", (request) => ({ appId: request.forgeRemoteContext?.fit.app?.id }));
 ```
 
 Wire a Forge-authenticated A2A server with `@a2a-js/sdk` and the Express
@@ -92,14 +110,17 @@ app.post(
 - Express integration: `@forge-ahead/remote/express` provides FIT validation
   middleware, an A2A `UserBuilder`, and a `ServerCallContextBuilder` so an
   `@a2a-js/sdk` server can be authenticated by Forge.
+- Fastify integration: `@forge-ahead/remote/fastify` provides an `onRequest`
+  hook that validates FITs and attaches `forgeRemoteContext` to the request.
 
 `@forge-ahead/remote` does not own the A2A server framework (task store,
 agent executor, request handler, transport writer, or server lifecycle). Those
 are owned by `@a2a-js/sdk`. This package only provides Forge-specific
 authentication and Atlassian formatting adapters.
 
-The package does not include storage helpers, logging integration, product API
-clients, or an SSE transport writer.
+The package does not include storage helpers, a concrete logging sink
+integration, product API clients, or an SSE transport writer. Its logging
+subpath only creates sink-neutral structured records.
 
 ## Documentation
 
@@ -121,6 +142,7 @@ Platform references:
 | Debug a rejected FIT | [Debug Forge Invocation Token validation](docs/how-to-guides/debug-forge-invocation-token-validation.md) |
 | Look up exports and FIT policy | [Public API Reference](docs/reference/public-api.md) |
 | Understand FIT verification | [Forge Invocation Token JWT Verification](docs/explanation/fit-jwt-verification.md) |
+| Understand safe logging boundaries | [Safe Remote Logging](docs/explanation/safe-remote-logging.md) |
 | Understand A2A and Forge Remote boundaries | [A2A SDK and Forge Remote Separation of Concerns](docs/explanation/a2a-sdk-separation-of-concerns.md) |
 | Understand the architecture | [Sans-IO Layering](docs/explanation/sans-io-layering.md) |
 | Match domain language | [CONTEXT.md](CONTEXT.md) |

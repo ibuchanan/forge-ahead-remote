@@ -14,6 +14,7 @@ const EXPECTED_SUBPATHS = [
   "./logging",
   "./rovo",
   "./express",
+  "./fastify",
   "./package.json",
 ];
 

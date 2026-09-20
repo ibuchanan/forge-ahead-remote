@@ -16,9 +16,9 @@ npm run build
 
 | Command | Purpose |
 | --- | --- |
-| `npm run build` | Build the ESM package with `tsdown`. |
+| `npm run build` | Build the package's ESM and CommonJS bundles with `tsdown`. |
 | `npm run dev` | Rebuild with `tsdown --watch`. |
-| `npm run check` | Run format, lint, TypeScript, and test checks. |
+| `npm run check` | Run format, lint, TypeScript, tests, and the production build. |
 | `npm run format` | Format files with Biome. |
 | `npm run lint:fix` | Apply Biome lint fixes. |
 | `npm test` | Run the Vitest test suite once. |
@@ -41,6 +41,12 @@ npm run build
   signal-mapping, and A2A-scoped JSON-RPC helpers.
 - `src/rovo.ts` backs `@forge-ahead/remote/rovo` with Jira/Rovo remote-agent
   method narrowing and response formatting.
+- `src/logging.ts` backs `@forge-ahead/remote/logging` with safe, sink-neutral
+  structured record builders.
+- `src/express.ts` and `src/fastify.ts` back framework-specific FIT adapters
+  through their dedicated public subpaths.
+- `src/cloud-id.ts` contains the Forge-specific Jira cloud-ID parser exported
+  from the root entrypoint.
 - `test/*.test.ts` and `test/a2a/*.test.ts` cover behavior, import boundaries,
   and package boundaries that lock the public API.
 - `tsdown.config.ts` builds each package entrypoint.
@@ -48,9 +54,9 @@ npm run build
   that test and API names should match.
 - `docs/tutorials/`, `docs/how-to-guides/`, `docs/reference/`, and
   `docs/explanation/` hold Diataxis-shaped user documentation.
-- `specs/` holds planning and reference material: the extraction design doc,
-  ticket definitions, and vendored reference implementations that informed this
-  package's API and tests. It is excluded from build, lint, and test.
+- `specs/` holds the remaining capability plans, active implementation specs,
+  and vendored reference implementations. It is excluded from build, lint, and
+  test.
 
 ## Public Boundaries
 
@@ -68,9 +74,10 @@ Keep each public entrypoint narrow:
 - `@forge-ahead/remote/rovo` may depend on A2A helpers, but it does not depend
   on Forge Remote Context, invocation contracts, storage, route handlers,
   framework packages, Forge packages, or logging.
-- Framework adapters, logging integrations, storage abstractions, product API
-  clients, and SSE transport writers belong in callers, examples, or future
-  extension packages.
+- Framework adapters may be exposed only through dedicated subpaths; they must
+  not pull framework dependencies or request mutation into the core. Concrete
+  logging integrations, storage abstractions, product API clients, and SSE
+  transport writers belong in callers, examples, or future extension packages.
 
 ## Documentation Maintenance
 

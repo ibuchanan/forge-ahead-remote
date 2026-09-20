@@ -20,8 +20,8 @@ redaction requirements.
 
 ## Required Log Events
 
-Implement these events from
-[`remote-logging-extension-design.md`](./remote-logging-extension-design.md):
+Implement the safe event records described in
+[Safe Remote Logging](../docs/explanation/safe-remote-logging.md):
 
 | Event | Required for the app | Notes |
 | --- | --- | --- |

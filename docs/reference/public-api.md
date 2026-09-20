@@ -10,7 +10,7 @@
 | Module format | ESM + CommonJS |
 | Node version | `>=22` |
 | Runtime dependencies | `@forge-ahead/errors`, `@a2a-js/sdk`, `jose`, `zod` |
-| Optional peer dependencies | `express` (used by `@forge-ahead/remote/express`) |
+| Optional peer dependencies | `express` (used by `@forge-ahead/remote/express`), `fastify` (used by `@forge-ahead/remote/fastify`) |
 | Build output | `dist/*.mjs`, `dist/*.cjs`, `dist/*.d.mts`, `dist/*.d.cts` |
 
 ## Entrypoints
@@ -25,6 +25,7 @@
 | `@forge-ahead/remote/logging` | `src/logging.ts` | Pure, whitelist-only Forge Remote log-record builders; it does not write to a log sink. |
 | `@forge-ahead/remote/rovo` | `src/rovo.ts` | Rovo/Jira remote-agent connector request validation and formatting using `@a2a-js/sdk` task types. |
 | `@forge-ahead/remote/express` | `src/express.ts` | FIT validation middleware, A2A `UserBuilder`, and `ServerCallContextBuilder` for Express. |
+| `@forge-ahead/remote/fastify` | `src/fastify.ts` | FIT validation `onRequest` hook for Fastify. |
 
 ## Root Exports
 
@@ -155,7 +156,10 @@
 | `createRemoteAuthRejectedRecord(input)` | function | Creates a `remote.auth.rejected` record with a safe problem summary. |
 | `createRemoteInvocationMatchedRecord(input)` | function | Creates a `remote.invocation.matched` record. |
 | `createRemoteInvocationMismatchedRecord(input)` | function | Creates a `remote.invocation.mismatched` record with a safe problem summary. |
-| `RemoteAuthAcceptedRecordInput`, `RemoteAuthAcceptedRecord`, `RemoteAuthRejectedRecordInput`, `RemoteAuthRejectedRecord`, `RemoteInvocationMatchedRecordInput`, `RemoteInvocationMatchedRecord`, `RemoteInvocationMismatchedRecordInput`, `RemoteInvocationMismatchedRecord`, `ProblemLogSummary` | types | Inputs, structured record shapes, and the whitelist-only Problem Details summary. |
+| `createRemoteA2aSignalMappedRecord(input)` | function | Creates a `remote.a2a.signal.mapped` record without signal content. |
+| `createRemoteA2aStreamEncodedRecord(input)` | function | Creates a `remote.a2a.stream.encoded` record without encoded response content. |
+| `createRemoteA2aCompletedRecord(input)` | function | Creates a `remote.a2a.completed` record for a terminal task state. |
+| `RemoteAuthAcceptedRecordInput`, `RemoteAuthAcceptedRecord`, `RemoteAuthRejectedRecordInput`, `RemoteAuthRejectedRecord`, `RemoteInvocationMatchedRecordInput`, `RemoteInvocationMatchedRecord`, `RemoteInvocationMismatchedRecordInput`, `RemoteInvocationMismatchedRecord`, `RemoteA2aSignalMappedRecordInput`, `RemoteA2aSignalMappedRecord`, `RemoteA2aStreamEncodedRecordInput`, `RemoteA2aStreamEncodedRecord`, `RemoteA2aCompletedRecordInput`, `RemoteA2aCompletedRecord`, `ProblemLogSummary` | types | Inputs, structured record shapes, and the whitelist-only Problem Details summary. |
 | `RemoteLogRecord` | type | Union of every safe structured record emitted by this subpath. |
 | `RemoteLogRecordLogger` | type | Application-owned logger interface with a method for each log level. |
 | `emitRemoteLogRecord(logger, record)` | function | Sends a safe structured record to its matching application-owned logger level. |
@@ -203,6 +207,13 @@ helpers still exist, they are deprecated and kept only for migration.
 | `forgeRemoteUserBuilder(req)` | function | A2A `UserBuilder` that reads the attached context. |
 | `forgeRemoteServerCallContextBuilder()` | function | Returns an A2A `ServerCallContextBuilder` that sets tenant from the Jira cloudId. |
 
+## Fastify Exports
+
+| Export | Kind | Description |
+| --- | --- | --- |
+| `ForgeRemoteAuthHookOptions` | type | FIT validation options plus forwarded-token header names. |
+| `forgeRemoteAuthHook(options?)` | function | Fastify `onRequest` hook that validates the FIT and attaches `forgeRemoteContext`. |
+
 ## Rovo Exports
 
 | Export | Kind | Description |
@@ -223,7 +234,7 @@ helpers still exist, they are deprecated and kept only for migration.
 | Surface | Status |
 | --- | --- |
 | `@forge-ahead/remote/verify` | Not exposed in `package.json` exports. |
-| Framework adapters | Only the Forge FIT Express adapter is exposed via `@forge-ahead/remote/express`. |
+| Framework adapters | Forge FIT adapters are exposed through `@forge-ahead/remote/express` and `@forge-ahead/remote/fastify`. |
 | Logging integration | The pure record builders are available only through `@forge-ahead/remote/logging`; concrete logger integration is not included. |
 | Storage integration | Not included in this package. |
 | SSE transport writer | Not included in this package. |
