@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildForgeRemoteContext } from "../src/context";
 import {
+  type ForgeRemoteRequest,
   forgeRemoteAuthMiddleware,
   forgeRemoteServerCallContextBuilder,
   forgeRemoteUserBuilder,
-  type ForgeRemoteRequest,
 } from "../src/express";
 import { generateTestKeyPair, signTestJwt } from "./jwt-test-helpers";
 

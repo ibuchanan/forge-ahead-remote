@@ -1,4 +1,4 @@
-import { Role, TaskState, type Task, type Message } from "@a2a-js/sdk";
+import { type Message, Role, type Task, TaskState } from "@a2a-js/sdk";
 import { describe, expect, it } from "vitest";
 import {
   formatRovoAgentConnectorResponse,
