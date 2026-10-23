@@ -62,7 +62,9 @@ import { forgeRemoteAuthHook } from "@forge-ahead/remote/fastify";
 const app = fastify();
 app.addHook("onRequest", forgeRemoteAuthHook());
 
-app.get("/work", (request) => ({ appId: request.forgeRemoteContext?.fit.app?.id }));
+app.get("/work", (request) => ({
+  appId: request.forgeRemoteContext?.fit.app?.id,
+}));
 ```
 
 Wire a Forge-authenticated A2A server with `@a2a-js/sdk` and the Express
@@ -125,7 +127,6 @@ subpath only creates sink-neutral structured records.
 ## Documentation
 
 Platform references:
-
 - [Forge](https://go.atlassian.com/forge)
 - [Forge Remote overview](https://developer.atlassian.com/platform/forge/remote/)
 - [Forge Remote essentials](https://developer.atlassian.com/platform/forge/remote/essentials/)
@@ -134,19 +135,19 @@ Platform references:
 - [Call Atlassian app APIs from a remote](https://developer.atlassian.com/platform/forge/remote/calling-product-apis/)
 - [Integrate remote agents with Jira](https://developer.atlassian.com/platform/forge/remote-agents-in-jira/)
 
-| Need | Start here |
-| --- | --- |
-| Learn the contract layer | [Validate a Custom UI Remote Context](docs/tutorials/validate-a-custom-ui-remote-context.md) |
-| Learn the Rovo/A2A path | [Handle a Rovo A2A Message Send](docs/tutorials/handle-a-rovo-a2a-message-send.md) |
-| Apply route contracts | [Apply Remote Invocation Contracts](docs/how-to-guides/apply-remote-invocation-contracts.md) |
-| Debug a rejected FIT | [Debug Forge Invocation Token validation](docs/how-to-guides/debug-forge-invocation-token-validation.md) |
-| Look up exports and FIT policy | [Public API Reference](docs/reference/public-api.md) |
-| Understand FIT verification | [Forge Invocation Token JWT Verification](docs/explanation/fit-jwt-verification.md) |
-| Understand safe logging boundaries | [Safe Remote Logging](docs/explanation/safe-remote-logging.md) |
-| Understand A2A and Forge Remote boundaries | [A2A SDK and Forge Remote Separation of Concerns](docs/explanation/a2a-sdk-separation-of-concerns.md) |
-| Understand the architecture | [Sans-IO Layering](docs/explanation/sans-io-layering.md) |
-| Match domain language | [CONTEXT.md](CONTEXT.md) |
-| Review design decisions | [docs/adr/](docs/adr/) |
+| Need                                       | Start here                                                                                               |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Learn the contract layer                   | [Validate a Custom UI Remote Context](docs/tutorials/validate-a-custom-ui-remote-context.md)             |
+| Learn the Rovo/A2A path                    | [Handle a Rovo A2A Message Send](docs/tutorials/handle-a-rovo-a2a-message-send.md)                       |
+| Apply route contracts                      | [Apply Remote Invocation Contracts](docs/how-to-guides/apply-remote-invocation-contracts.md)             |
+| Debug a rejected FIT                       | [Debug Forge Invocation Token validation](docs/how-to-guides/debug-forge-invocation-token-validation.md) |
+| Look up exports and FIT policy             | [Public API Reference](docs/reference/public-api.md)                                                     |
+| Understand FIT verification                | [Forge Invocation Token JWT Verification](docs/explanation/fit-jwt-verification.md)                      |
+| Understand safe logging boundaries         | [Safe Remote Logging](docs/explanation/safe-remote-logging.md)                                           |
+| Understand A2A and Forge Remote boundaries | [A2A SDK and Forge Remote Separation of Concerns](docs/explanation/a2a-sdk-separation-of-concerns.md)    |
+| Understand the architecture                | [Sans-IO Layering](docs/explanation/sans-io-layering.md)                                                 |
+| Match domain language                      | [CONTEXT.md](CONTEXT.md)                                                                                 |
+| Review design decisions                    | [docs/adr/](docs/adr/)                                                                                   |
 
 ## Development
 

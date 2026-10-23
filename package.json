@@ -1,9 +1,8 @@
 {
   "name": "@forge-ahead/remote",
   "version": "0.4.0",
-  "description": "Framework-neutral authentication and A2A/Rovo helpers for Atlassian Forge Remote services.",
   "private": true,
-  "license": "Apache-2.0",
+  "description": "Framework-neutral authentication and A2A/Rovo helpers for Atlassian Forge Remote services.",
   "keywords": [
     "atlassian",
     "forge",
@@ -18,6 +17,7 @@
     "type": "git",
     "url": "git+https://github.com/ibuchanan/forge-ahead-remote.git"
   },
+  "license": "Apache-2.0",
   "author": "Ian Buchanan",
   "sideEffects": false,
   "type": "module",
@@ -140,22 +140,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@a2a-js/sdk": "^1.2",
+    "@a2a-js/sdk": "^1.3",
     "@forge-ahead/errors": "github:ibuchanan/forge-ahead-errors",
     "jose": "^6.2",
     "zod": "^4.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.6.2",
     "@types/express": "^5.0",
     "@types/node": "22",
-    "@vitest/coverage-v8": "^5.0",
-    "express": "^5.2",
+    "@vitest/coverage-v8": "^5.0.5",
+    "express": "^5.3",
     "fastify": "^5.12",
-    "lefthook": "^2.1",
+    "lefthook": "^2.2",
     "tsdown": "^0.23",
     "typescript": "^5.9",
-    "vitest": "^5.0"
+    "vitest": "^5.0.5"
   },
   "peerDependencies": {
     "express": "^4.21 || ^5.1",

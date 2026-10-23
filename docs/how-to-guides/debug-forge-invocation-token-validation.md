@@ -68,7 +68,6 @@ if (result.isErr()) {
 ```
 
 For an accepted request, continue the same correlation through the route:
-
 1. `remote.auth.accepted` or `remote.auth.rejected`
 2. `remote.invocation.matched` or `remote.invocation.mismatched`
 3. `remote.a2a.signal.mapped` and `remote.a2a.stream.encoded`, when applicable

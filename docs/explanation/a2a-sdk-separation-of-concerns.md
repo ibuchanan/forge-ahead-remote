@@ -40,7 +40,6 @@ helpers without conversion merely because it crossed a package boundary.
 ## The Forge Remote boundary belongs to `@forge-ahead/remote`
 
 Forge adds facts that a general A2A server cannot infer or safely assume:
-
 - a Forge Invocation Token (FIT) establishes that Forge invoked the remote;
 - forwarded system and user OAuth tokens can authorize calls back to Atlassian;
 - a Remote Invocation Contract states which forwarded tokens a route requires;

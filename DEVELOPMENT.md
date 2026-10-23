@@ -14,17 +14,17 @@ npm run build
 
 ## Common Scripts
 
-| Command | Purpose |
-| --- | --- |
-| `npm run build` | Build the package's ESM and CommonJS bundles with `tsdown`. |
-| `npm run dev` | Rebuild with `tsdown --watch`. |
-| `npm run check` | Run format, lint, TypeScript, tests, and the production build. |
-| `npm run format` | Format files with Biome. |
-| `npm run lint:fix` | Apply Biome lint fixes. |
-| `npm test` | Run the Vitest test suite once. |
-| `npm run test:watch` | Run Vitest in watch mode. |
-| `npm run test:coverage` | Run Vitest with coverage reporting. |
-| `npm run changelog` | Generate changelog output with `git cliff`. |
+| Command                 | Purpose                                                        |
+| ----------------------- | -------------------------------------------------------------- |
+| `npm run build`         | Build the package's ESM and CommonJS bundles with `tsdown`.    |
+| `npm run dev`           | Rebuild with `tsdown --watch`.                                 |
+| `npm run check`         | Run format, lint, TypeScript, tests, and the production build. |
+| `npm run format`        | Format files with Biome.                                       |
+| `npm run lint:fix`      | Apply Biome lint fixes.                                        |
+| `npm test`              | Run the Vitest test suite once.                                |
+| `npm run test:watch`    | Run Vitest in watch mode.                                      |
+| `npm run test:coverage` | Run Vitest with coverage reporting.                            |
+| `npm run changelog`     | Generate changelog output with `git cliff`.                    |
 
 ## Project Layout
 
@@ -61,7 +61,6 @@ npm run build
 ## Public Boundaries
 
 Keep each public entrypoint narrow:
-
 - Root exports stay focused on Forge Remote authentication plus the pure JWT and
   context helpers already re-exported from `src/index.ts`.
 - `@forge-ahead/remote/jwt` and `@forge-ahead/remote/context` stay
@@ -86,7 +85,6 @@ to deeper docs without duplicating full tutorials, how-to guides, reference
 tables, or architecture explanations.
 
 When adding or changing a public capability:
-
 1. Update the source and package-boundary tests.
 2. Update [docs/reference/public-api.md](docs/reference/public-api.md) for new
    entrypoints, exports, presets, or intentionally absent surfaces.

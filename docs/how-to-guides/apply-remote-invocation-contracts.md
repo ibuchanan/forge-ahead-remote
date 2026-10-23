@@ -10,13 +10,13 @@ known Forge Remote request category for that route.
 
 Select the preset that matches the route:
 
-| Route category | Preset |
-| --- | --- |
-| Custom UI resolver call | `customUiInvocation` |
-| Backend function invocation | `backendFunctionInvocation` |
-| Async event invocation | `asyncEventInvocation` |
+| Route category               | Preset                       |
+| ---------------------------- | ---------------------------- |
+| Custom UI resolver call      | `customUiInvocation`         |
+| Backend function invocation  | `backendFunctionInvocation`  |
+| Async event invocation       | `asyncEventInvocation`       |
 | Scheduled trigger invocation | `scheduledTriggerInvocation` |
-| External Remote invocation | `externalRemoteInvocation` |
+| External Remote invocation   | `externalRemoteInvocation`   |
 
 ## Validate authentication first
 

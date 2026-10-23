@@ -26,7 +26,6 @@ the same Forge verification and contract rules can work in each runtime.
 ## What the package owns
 
 The package owns repeatable protocol and validation work:
-
 - verifying a Forge Invocation Token (FIT),
   including its signature and expected claims;
 - returning a verified Forge Remote Context or safe Problem Details;

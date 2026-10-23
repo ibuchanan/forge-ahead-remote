@@ -75,7 +75,6 @@ on its own.
 After signature verification,
 the package checks the claims that constrain
 how the FIT may be used:
-
 - **Issuer** identifies the expected token issuer.
   Request validators default it to `forge/invocation-token`.
 - **Audience** identifies the Forge application that may accept the token.

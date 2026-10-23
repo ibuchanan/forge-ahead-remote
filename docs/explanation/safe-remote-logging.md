@@ -9,7 +9,6 @@ This boundary keeps authentication and protocol helpers usable in any runtime wh
 A Forge Invocation Token payload is intentionally permissive: it may contain claims that an application must not disclose. Logging therefore uses allowlisted summaries rather than copying a `ForgeRemoteContext` or recursively redacting an arbitrary request object.
 
 A remote-context summary includes only:
-
 - verification audience and issuer;
 - FIT application ID and principal subject when each is a string; and
 - booleans that indicate whether forwarded system and user tokens are present.
@@ -20,15 +19,15 @@ It never includes forwarded-token values, raw authorization headers, unknown FIT
 
 The package defines records that make a request story observable without creating a second event system:
 
-| Layer | Event | Meaning |
-| --- | --- | --- |
-| Authentication | `remote.auth.accepted` | Forge request validation succeeded. |
-| Authentication | `remote.auth.rejected` | Validation produced safe Problem Details. |
-| Invocation | `remote.invocation.matched` | The verified context satisfied the route contract. |
-| Invocation | `remote.invocation.mismatched` | The verified context did not meet the contract. |
-| A2A | `remote.a2a.signal.mapped` | A provider-neutral signal was mapped to an A2A event. |
-| A2A | `remote.a2a.stream.encoded` | An A2A stream envelope was encoded. |
-| A2A | `remote.a2a.completed` | A task reached a terminal outcome. |
+| Layer          | Event                          | Meaning                                               |
+| -------------- | ------------------------------ | ----------------------------------------------------- |
+| Authentication | `remote.auth.accepted`         | Forge request validation succeeded.                   |
+| Authentication | `remote.auth.rejected`         | Validation produced safe Problem Details.             |
+| Invocation     | `remote.invocation.matched`    | The verified context satisfied the route contract.    |
+| Invocation     | `remote.invocation.mismatched` | The verified context did not meet the contract.       |
+| A2A            | `remote.a2a.signal.mapped`     | A provider-neutral signal was mapped to an A2A event. |
+| A2A            | `remote.a2a.stream.encoded`    | An A2A stream envelope was encoded.                   |
+| A2A            | `remote.a2a.completed`         | A task reached a terminal outcome.                    |
 
 The logging helpers accept optional request, trace, and span identifiers. Applications can generate these at the HTTP boundary or derive a request identifier from a JSON-RPC ID.
 
